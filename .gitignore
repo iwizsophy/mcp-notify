@@ -1,0 +1,12 @@
+/bin/
+*.exe
+/dist/
+/mcp-notify
+/go.tgz
+.idea/
+.vscode/
+.DS_Store
+artifacts/
+coverage.out
+*.zip
+*.tar.gz

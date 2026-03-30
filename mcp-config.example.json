@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "notify": {
+      "command": "D:\\Source\\Self\\mcp-notify\\bin\\mcp-notify.exe",
+      "args": ["--sound", "complete.wav"],
+      "cwd": "D:\\Source\\Self\\mcp-notify"
+    }
+  }
+}
