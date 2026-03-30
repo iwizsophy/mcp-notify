@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     tags-ignore:
-      - "v*"
+      - "v*.*.*"
   pull_request:
 
 permissions:
@@ -40,7 +40,30 @@ jobs:
           fi
 
       - name: Test
-        run: go test ./...
+        run: go test -covermode=atomic -coverprofile=coverage.out ./...
+
+      - name: Generate coverage summary
+        shell: bash
+        run: |
+          go tool cover -func=coverage.out | tee coverage-summary.txt
+          go tool cover -html=coverage.out -o coverage.html
+          {
+            echo "## Coverage"
+            echo
+            echo '```text'
+            cat coverage-summary.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: |
+            coverage.out
+            coverage-summary.txt
+            coverage.html
+          if-no-files-found: error
 
   build:
     strategy:
