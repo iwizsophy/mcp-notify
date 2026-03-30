@@ -1,0 +1,190 @@
+# mcp-notify
+
+`mcp-notify` is a stdio-based MCP server written in Go that plays a local notification sound on the current machine.
+
+Call the MCP tool `play_mcp_notification_sound` to play either the file configured at server startup or a file selected at call time.
+
+Japanese documentation is available in [README.ja.md](README.ja.md).
+
+## What It Does
+
+- Provides one MCP tool: `play_mcp_notification_sound`
+- Plays a sound file under the local `sounds/` directory
+- Supports `.wav` and `.mp3`
+- Works primarily on Windows, with macOS and Linux support
+- Can also run as a one-shot CLI for hook-style integrations
+
+## Quick Start
+
+### 1. Build
+
+```powershell
+go build -o .\bin\mcp-notify.exe .\cmd\mcp-notify
+```
+
+If you want to verify the repository before wiring it into an MCP client:
+
+```powershell
+go test ./...
+```
+
+### 2. Configure your MCP client
+
+Example `mcpServers` entry:
+
+```json
+{
+  "mcpServers": {
+    "notify": {
+      "command": "C:\\path\\to\\mcp-notify\\bin\\mcp-notify.exe",
+      "args": ["--sound", "complete.wav"],
+      "cwd": "C:\\path\\to\\mcp-notify"
+    }
+  }
+}
+```
+
+If you want asynchronous playback:
+
+```json
+{
+  "mcpServers": {
+    "notify": {
+      "command": "C:\\path\\to\\mcp-notify\\bin\\mcp-notify.exe",
+      "args": ["--sound", "alerts/sample.mp3", "--wait=false"],
+      "cwd": "C:\\path\\to\\mcp-notify"
+    }
+  }
+}
+```
+
+If you want to launch it with `go run` instead of building:
+
+```json
+{
+  "mcpServers": {
+    "notify": {
+      "command": "go",
+      "args": ["run", "./cmd/mcp-notify", "--sound", "complete.wav"],
+      "cwd": "C:\\path\\to\\mcp-notify"
+    }
+  }
+}
+```
+
+If you want to use it from a short-lived hook without keeping an MCP server alive:
+
+```powershell
+.\bin\mcp-notify.exe --play-once complete.wav --wait=false
+```
+
+## Multiple Server Registrations
+
+You can register the same binary multiple times in your MCP client and split behavior by startup arguments.
+
+Example:
+
+```toml
+[mcp_servers.next-step-call]
+command = "C:\\mcp\\mcp-notify\\mcp-notify.exe"
+args = ["--sound", "continue.wav", "--wait=false", "--server-name", "notify-next-step", "--tool-prefix", "next_"]
+enabled = true
+
+[mcp_servers.complete-call]
+command = "C:\\mcp\\mcp-notify\\mcp-notify.exe"
+args = ["--sound", "complete.wav", "--wait=false", "--server-name", "notify-complete", "--tool-prefix", "complete_"]
+enabled = true
+```
+
+In that setup:
+
+- `next-step-call` and `complete-call` are client-side server registration names
+- each server can expose a distinct `serverInfo.name` via `--server-name`
+- each server can expose a distinct tool name via `--tool-prefix`
+- the actual sound changes because each server starts with a different `--sound` value
+
+This means you can keep one binary while still distinguishing instances in both initialize metadata and tool names.
+
+### 3. Call the tool
+
+Tool name:
+
+```text
+play_mcp_notification_sound
+```
+
+With `--tool-prefix complete_`:
+
+```text
+complete_play_mcp_notification_sound
+```
+
+Input examples:
+
+```json
+{}
+```
+
+```json
+{
+  "soundPath": "alerts/sample.mp3",
+  "wait": false
+}
+```
+
+Successful response example:
+
+```json
+{
+  "success": true,
+  "soundPath": "C:\\path\\to\\mcp-notify\\sounds\\complete.wav",
+  "mode": "sync"
+}
+```
+
+## Startup Options
+
+- `--sound`: optional relative file name or subpath under `sounds/`
+- `--wait`: optional, default `true`
+- `--play-once`: optional relative file name or subpath under `sounds/`; plays once and exits instead of starting the MCP server
+- `--server-name`: optional, default `mcp-notify`; overrides `initialize.serverInfo.name`
+- `--tool-prefix`: optional literal prefix added to `play_mcp_notification_sound`
+
+## Important Behavior
+
+- The tool accepts optional runtime arguments `soundPath` and `wait`
+- If `soundPath` is omitted, the startup `--sound` value is used
+- Only files under `sounds/` are allowed
+- Absolute paths and `..` path traversal are rejected
+- `--wait=true` waits for playback to finish
+- `--wait=false` returns immediately and keeps playback running in a detached helper process
+- Invalid startup configuration causes `initialize` to return an MCP error when `--sound` is set
+
+## Platform Notes
+
+- Windows, macOS, and Linux: uses Go audio playback via `oto` with built-in `.wav` and `.mp3` decoding
+- Linux builds require ALSA development headers, for example `libasound2-dev` on Debian/Ubuntu
+- Cross-compiling to Linux requires `CGO_ENABLED=1` and the target ALSA libraries to be available
+
+## Limitations
+
+- If you omit both startup `--sound` and tool-call `soundPath`, the tool returns an error
+- Replacing the configured sound file with a different sample rate or channel count requires restarting the server
+
+## Docs
+
+- Detailed setup and configuration: [docs/setup.md](docs/setup.md)
+- Japanese setup guide: [docs/setup.ja.md](docs/setup.ja.md)
+- Development notes: [docs/development.md](docs/development.md)
+- Verification memo: [docs/verification.md](docs/verification.md)
+- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Japanese contribution guide: [CONTRIBUTING.ja.md](CONTRIBUTING.ja.md)
+- Changelog: [CHANGELOG.md](CHANGELOG.md)
+- Security policy: [SECURITY.md](SECURITY.md)
+- Support policy: [.github/SUPPORT.md](.github/SUPPORT.md)
+- Code of Conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+
+## License
+
+MIT. See [LICENSE](LICENSE).
+For a reference Japanese translation, see [LICENSE.ja.md](LICENSE.ja.md).
