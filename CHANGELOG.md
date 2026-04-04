@@ -6,6 +6,17 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added
+
+- Each release archive now bundles a Syft-generated `SBOM.spdx.json`
+
+### Changed
+
+- The release workflow now generates an SPDX JSON SBOM from the assembled
+  package contents before archiving
+- Third-party notices now include trademark attributions for names used in
+  shipped documentation and release materials
+
 ## [1.0.0] - 2026-04-01
 
 ### Added

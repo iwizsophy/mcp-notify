@@ -123,6 +123,15 @@ jobs:
             cp -R sounds/. "${package_root}/sounds/"
           fi
 
+      - name: Generate package SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./release-root/${{ env.PACKAGE_NAME }}
+          format: spdx-json
+          output-file: ./release-root/${{ env.PACKAGE_NAME }}/SBOM.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
       - name: Create archive (tar.gz)
         if: runner.os != 'Windows'
         shell: bash
