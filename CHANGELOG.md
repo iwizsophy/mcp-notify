@@ -6,6 +6,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Changed
+
+- CI now also runs when a pull request is closed by merge, so post-merge
+  validation does not depend solely on a branch `push` event
+
 ## [1.1.0] - 2026-04-04
 
 ### Added

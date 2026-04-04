@@ -65,8 +65,9 @@ See [verification.md](verification.md) for the current manual verification memo.
 ## Release Process
 
 - Normal CI runs on pushes for any branch commit except release tags, and on
-  pull requests. It verifies formatting, tests, coverage artifacts, and
-  buildability.
+  pull requests. It also runs when a pull request is closed by merge so the
+  merged result is validated even if the expected branch `push` run does not
+  appear. It verifies formatting, tests, coverage artifacts, and buildability.
 - To publish a GitHub release, first merge the release-ready commit into
   `main`, then create an annotated `vX.Y.Z` tag on a commit contained in
   `main`, and push that tag.
