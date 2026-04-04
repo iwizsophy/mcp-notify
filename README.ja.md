@@ -184,13 +184,18 @@ complete_play_mcp_notification_sound
 - コントリビュートガイド: [CONTRIBUTING.md](CONTRIBUTING.md)
 - 日本語コントリビュートガイド: [CONTRIBUTING.ja.md](CONTRIBUTING.ja.md)
 - 変更履歴: [CHANGELOG.md](CHANGELOG.md)
+- Third-party notices: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)
 - セキュリティポリシー: [SECURITY.md](SECURITY.md)
 - サポートポリシー: [.github/SUPPORT.md](.github/SUPPORT.md)
 - 行動規範: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
-リリースアーカイブにも上記のドキュメントとポリシーファイルを同梱するため、配布物内の README から参照が切れません。
+リリースアーカイブにも上記のドキュメント、ポリシーファイル、
+`THIRD-PARTY-NOTICES.md` を同梱するため、配布物内の README から参照が
+切れません。
 
 ## ライセンス
 
 MIT。詳細は [LICENSE](LICENSE) を参照してください。
 参考和訳は [LICENSE.ja.md](LICENSE.ja.md) を参照してください。
+同梱依存のライセンス notice は
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) に記載しています。

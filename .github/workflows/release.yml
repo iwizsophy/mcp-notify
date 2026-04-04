@@ -116,7 +116,7 @@ jobs:
           package_root="release-root/${PACKAGE_NAME}"
           mkdir -p "${package_root}/sounds" "${package_root}/.github"
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags "-X main.version=${package_version}" -o "${package_root}/${{ matrix.binary_name }}" ./cmd/mcp-notify
-          cp README.md README.ja.md LICENSE LICENSE.ja.md CHANGELOG.md mcp-config.example.json CONTRIBUTING.md CONTRIBUTING.ja.md CODE_OF_CONDUCT.md SECURITY.md "${package_root}/"
+          cp README.md README.ja.md LICENSE LICENSE.ja.md THIRD-PARTY-NOTICES.md CHANGELOG.md mcp-config.example.json CONTRIBUTING.md CONTRIBUTING.ja.md CODE_OF_CONDUCT.md SECURITY.md "${package_root}/"
           cp -R docs "${package_root}/"
           cp .github/SUPPORT.md "${package_root}/.github/"
           if [ -d sounds ]; then

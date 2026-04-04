@@ -184,13 +184,17 @@ Successful response example:
 - Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
 - Japanese contribution guide: [CONTRIBUTING.ja.md](CONTRIBUTING.ja.md)
 - Changelog: [CHANGELOG.md](CHANGELOG.md)
+- Third-party notices: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)
 - Security policy: [SECURITY.md](SECURITY.md)
 - Support policy: [.github/SUPPORT.md](.github/SUPPORT.md)
 - Code of Conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
-Release archives include the linked docs and policy files above so the bundled README stays self-contained.
+Release archives include the linked docs, policy files, and
+`THIRD-PARTY-NOTICES.md` above so the bundled README stays self-contained.
 
 ## License
 
 MIT. See [LICENSE](LICENSE).
 For a reference Japanese translation, see [LICENSE.ja.md](LICENSE.ja.md).
+Bundled third-party dependency notices are listed in
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
