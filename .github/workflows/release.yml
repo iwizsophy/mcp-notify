@@ -116,12 +116,21 @@ jobs:
           package_root="release-root/${PACKAGE_NAME}"
           mkdir -p "${package_root}/sounds" "${package_root}/.github"
           GOOS=${{ matrix.goos }} GOARCH=${{ matrix.goarch }} go build -ldflags "-X main.version=${package_version}" -o "${package_root}/${{ matrix.binary_name }}" ./cmd/mcp-notify
-          cp README.md README.ja.md LICENSE LICENSE.ja.md CHANGELOG.md mcp-config.example.json CONTRIBUTING.md CONTRIBUTING.ja.md CODE_OF_CONDUCT.md SECURITY.md "${package_root}/"
+          cp README.md README.ja.md LICENSE LICENSE.ja.md THIRD-PARTY-NOTICES.md CHANGELOG.md mcp-config.example.json CONTRIBUTING.md CONTRIBUTING.ja.md CODE_OF_CONDUCT.md SECURITY.md "${package_root}/"
           cp -R docs "${package_root}/"
           cp .github/SUPPORT.md "${package_root}/.github/"
           if [ -d sounds ]; then
             cp -R sounds/. "${package_root}/sounds/"
           fi
+
+      - name: Generate package SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./release-root/${{ env.PACKAGE_NAME }}
+          format: spdx-json
+          output-file: ./release-root/${{ env.PACKAGE_NAME }}/SBOM.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
 
       - name: Create archive (tar.gz)
         if: runner.os != 'Windows'

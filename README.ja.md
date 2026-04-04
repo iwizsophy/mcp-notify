@@ -184,13 +184,21 @@ complete_play_mcp_notification_sound
 - コントリビュートガイド: [CONTRIBUTING.md](CONTRIBUTING.md)
 - 日本語コントリビュートガイド: [CONTRIBUTING.ja.md](CONTRIBUTING.ja.md)
 - 変更履歴: [CHANGELOG.md](CHANGELOG.md)
+- Third-party notices: [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md)
+- Release SBOM: 各リリースアーカイブに `SBOM.spdx.json` を同梱します
+  （Syft 生成）
 - セキュリティポリシー: [SECURITY.md](SECURITY.md)
 - サポートポリシー: [.github/SUPPORT.md](.github/SUPPORT.md)
 - 行動規範: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 
-リリースアーカイブにも上記のドキュメントとポリシーファイルを同梱するため、配布物内の README から参照が切れません。
+リリースアーカイブにも上記のドキュメント、ポリシーファイル、
+`THIRD-PARTY-NOTICES.md`、および Syft 生成の `SBOM.spdx.json` を同梱する
+ため、配布物内の README から参照が切れず、配布内容の追跡もしやすく
+なります。
 
 ## ライセンス
 
 MIT。詳細は [LICENSE](LICENSE) を参照してください。
 参考和訳は [LICENSE.ja.md](LICENSE.ja.md) を参照してください。
+同梱依存のライセンス notice は
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md) に記載しています。
