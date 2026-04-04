@@ -64,5 +64,8 @@ See [verification.md](verification.md) for the current manual verification memo.
 
 ## Release Process
 
-- Normal CI runs on pushes and pull requests, and verifies formatting, tests, coverage artifacts, and buildability.
+- Normal CI runs on pushes for any branch commit except release tags, and on
+  pull requests. It verifies formatting, tests, coverage artifacts, and
+  buildability.
 - To publish a GitHub release, create an annotated `vX.Y.Z` tag on a commit contained in `main`, then push that tag.
+- Current release archives bundle the built binary, setup and policy docs, `THIRD-PARTY-NOTICES.md`, and a Syft-generated `SBOM.spdx.json`.

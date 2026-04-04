@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Changed
+
+- CI now runs on pushes for any branch commit except release tags, and on pull
+  requests
+
+## [1.1.0] - 2026-04-04
+
 ### Added
 
 - Each release archive now bundles a Syft-generated `SBOM.spdx.json`
