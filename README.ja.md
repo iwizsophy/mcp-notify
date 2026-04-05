@@ -10,6 +10,20 @@ MCP ツール `play_mcp_notification_sound` で、サーバ起動時に設定し
 
 English version: [README.md](README.md)
 
+## 背景
+
+MCP を用いた開発フローでは、ツールの実行結果やユーザー確認待ちの状態に気づけないケースがあり、処理が停止していることに後から気づく問題が発生します。
+
+特に、非同期的に処理が進む環境では、画面を常に監視し続ける必要があり、作業効率の低下につながります。
+
+この問題は、状態の変化を視覚的な情報のみに依存していることに起因しており、より直感的に気づける仕組みが求められます。
+
+この課題を解決するために、状態の変化を音で通知できる MCP サーバとして `mcp-notify` を開発しました。
+
+`mcp-notify` は、ツール呼び出しによりローカル環境で通知音を再生し、MCP ベースのワークフローにおける「気づけない」を解消します。
+
+なお、副作用として、作業環境が少しにぎやかになる場合があります。鳴るかどうかはツールの呼び出し次第です。
+
 ## できること
 
 - MCP ツール `play_mcp_notification_sound` を 1 つ提供します
@@ -80,6 +94,19 @@ hook から単発で鳴らしたい場合:
 
 ```powershell
 .\bin\mcp-notify.exe --play-once complete.wav --wait=false
+```
+
+この設定は MCP サーバを登録するだけです。実際に通知音を鳴らすには、MCP クライアント側でこのサーバ登録を呼び出すルールや Hook を別途設定する必要があります。クライアントによっては登録名経由でツールを呼び出し、公開されるツール名は通常 `play_mcp_notification_sound` ですが、`--tool-prefix` を指定した場合は変わります。
+
+Codex では、たとえば `AGENTS.md` に次のようなルールを書けます。`next-step-call` と `complete-call` は例なので、自分の環境で登録した MCP 名に置き換えてください。
+
+```md
+## Task Transition Rules
+- When a task (issue) is completed, and the next task is started within the same session, you MUST call the `<your-next-step-mcp-registration>` MCP.
+- This applies even if the next task is implicitly continued without explicit user instruction.
+
+## MCP Execution (Critical)
+- At the end of EVERY work turn, you MUST call the `<your-complete-mcp-registration>` MCP.
 ```
 
 ## 同じバイナリを複数登録する場合

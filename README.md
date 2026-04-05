@@ -10,6 +10,20 @@ Call the MCP tool `play_mcp_notification_sound` to play either the file configur
 
 Japanese documentation is available in [README.ja.md](README.ja.md).
 
+## Background
+
+In MCP-based workflows, it is easy to miss tool results or moments when the process is waiting for user confirmation, and only notice later that work has stopped.
+
+This is especially noticeable in asynchronous environments, where you otherwise need to keep watching the screen to notice state changes.
+
+The root problem is relying only on visual feedback. A more direct and intuitive signal helps reduce that monitoring burden.
+
+`mcp-notify` was built to address that gap by turning state changes into audible notifications.
+
+When its MCP tool is called, it plays a local sound on the current machine so MCP-based workflows are easier to notice without constant visual attention.
+
+As a side effect, your workspace may become slightly noisier. Whether that happens depends on how often you call the tool.
+
 ## What It Does
 
 - Provides one MCP tool: `play_mcp_notification_sound`
@@ -80,6 +94,19 @@ If you want to use it from a short-lived hook without keeping an MCP server aliv
 
 ```powershell
 .\bin\mcp-notify.exe --play-once complete.wav --wait=false
+```
+
+This only registers the MCP server. To actually hear notifications, your MCP client also needs a rule or hook that invokes this server registration at the right moments. Depending on the client, that may mean calling the server via its registration name and then invoking the exposed tool, whose name is normally `play_mcp_notification_sound` but changes if you use `--tool-prefix`.
+
+With Codex, for example, you can express that behavior in `AGENTS.md`. Replace `next-step-call` and `complete-call` below with the MCP registration names you actually use in your environment.
+
+```md
+## Task Transition Rules
+- When a task (issue) is completed, and the next task is started within the same session, you MUST call the `<your-next-step-mcp-registration>` MCP.
+- This applies even if the next task is implicitly continued without explicit user instruction.
+
+## MCP Execution (Critical)
+- At the end of EVERY work turn, you MUST call the `<your-complete-mcp-registration>` MCP.
 ```
 
 ## Multiple Server Registrations
