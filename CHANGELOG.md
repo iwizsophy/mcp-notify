@@ -11,8 +11,6 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - CI `push` triggers now explicitly target all branches, fixing the previous
   misconfiguration where `tags-ignore` alone prevented branch pushes from
   creating runs
-- CI also runs when a pull request is closed by merge, so post-merge
-  validation does not depend solely on a branch `push` event
 
 ## [1.1.0] - 2026-04-04
 

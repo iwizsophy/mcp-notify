@@ -132,6 +132,19 @@ Remove-Item Env:GOOS
 }
 ```
 
+これらの設定は MCP サーバを登録するためのものです。実際に通知音を鳴らすには、MCP クライアント側でこのサーバ登録を呼び出すルールや Hook を別途設定する必要があります。クライアントによっては登録名経由でツールを呼び出し、公開されるツール名は通常 `play_mcp_notification_sound` ですが、`--tool-prefix` を指定した場合は変わります。
+
+Codex では、たとえば `AGENTS.md` に次のようなルールを書けます。`next-step-call` と `complete-call` は例なので、自分の環境で登録した MCP 名に置き換えてください。
+
+```md
+## Task Transition Rules
+- When a task (issue) is completed, and the next task is started within the same session, you MUST call the `<your-next-step-mcp-registration>` MCP.
+- This applies even if the next task is implicitly continued without explicit user instruction.
+
+## MCP Execution (Critical)
+- At the end of EVERY work turn, you MUST call the `<your-complete-mcp-registration>` MCP.
+```
+
 ## 引数指定の注意
 
 フラグと値は別要素で渡してください。
