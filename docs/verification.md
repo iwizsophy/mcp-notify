@@ -50,7 +50,15 @@
 - VOICEVOXの正常応答、HTTPエラー、不正JSON、空音声、サイズ上限を単体テストで確認
 - `go vet ./...` 成功
 
-## 今回未実施の実機確認
+## 未実施・環境依存の確認
 
-- 実際のVOICEVOX Engineと音声デバイスを組み合わせた読み上げは、Engineが稼働している環境で確認が必要
 - WindowsからLinux向けに単純クロスビルドするには、既存の `oto` が要求するALSA/CGOクロスツールチェーンを別途用意する必要がある
+
+## VOICEVOX実機確認（2026-09-06）
+
+- Windows上のVOICEVOX Engine `0.25.1` をCPUモード、`127.0.0.1:50021` で起動
+- `/version` と `/speakers` がHTTP 200を返すことを確認
+- 話者・スタイルID `3` が「ずんだもん／ノーマル」であることを確認
+- `speak_text` を `speaker=3`, `wait=true` で呼び出し、`/audio_query` と `/synthesis` がHTTP 200を返すことを確認
+- MCP応答が `success=true`, `provider=voicevox`, `speaker=3`, `mode=sync` になることを確認
+- 同一MCPプロセスで `play_mcp_notification_sound`、続けて `speak_text` を同期実行し、共有する音声出力コンテキストで両方の再生が完了することを確認
