@@ -3,9 +3,11 @@ package voicevox
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -150,5 +152,23 @@ func TestClientPreservesEndpointBasePath(t *testing.T) {
 	}
 	if got := client.apiURL("audio_query").Path; got != "/api/audio_query" {
 		t.Fatalf("unexpected API path: %q", got)
+	}
+}
+
+func TestRequestErrorRedactsURLQuery(t *testing.T) {
+	t.Parallel()
+
+	appErr := requestError("request failed", &url.Error{
+		Op:  http.MethodPost,
+		URL: "http://127.0.0.1:50021/audio_query?text=private-speech&speaker=3",
+		Err: errors.New("connection refused"),
+	})
+
+	if strings.Contains(appErr.Details, "private-speech") || strings.Contains(appErr.Details, "text=") {
+		t.Fatalf("speech text leaked through request URL: %q", appErr.Details)
+	}
+	if !strings.Contains(appErr.Details, "http://127.0.0.1:50021/audio_query") ||
+		!strings.Contains(appErr.Details, "connection refused") {
+		t.Fatalf("useful request error context was lost: %q", appErr.Details)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -165,5 +166,17 @@ func readResponse(response *http.Response, limit int64, operation string) ([]byt
 }
 
 func requestError(message string, err error) *validation.AppError {
-	return validation.NewAppError(message, err.Error())
+	details := err.Error()
+	var urlErr *url.Error
+	if errors.As(err, &urlErr) {
+		redacted := *urlErr
+		if parsed, parseErr := url.Parse(redacted.URL); parseErr == nil {
+			parsed.RawQuery = ""
+			parsed.ForceQuery = false
+			redacted.URL = parsed.String()
+		}
+		details = redacted.Error()
+	}
+
+	return validation.NewAppError(message, details)
 }

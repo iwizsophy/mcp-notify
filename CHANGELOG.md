@@ -22,6 +22,10 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Added client-neutral MCP setup and dynamic speech policy guidance, with concrete Codex, Claude, and VS Code examples
 - Corrected the copyright holder in the canonical MIT license to match the repository identity and reference translation
 
+### Fixed
+
+- Redacted VOICEVOX request query parameters from transport errors so speech text is not returned to MCP clients
+
 ## [1.1.0] - 2026-04-04
 
 ### Added

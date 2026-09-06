@@ -228,5 +228,6 @@ If the client has no persistent instruction or hook mechanism, you can still ask
 - The notification sound is missing: check the `sounds/` layout, the relative `--sound` value, and `cwd` when needed
 - Notifications are duplicated: check whether the same policy exists in multiple instruction files or hooks
 - The server is visible but does not speak: confirm that the invocation policy is in an instruction source or hook the client actually loads
+- The tool is selected but cancelled: check the client's MCP tool approval settings; non-interactive runs need an execution mode that can preapprove the intended tool
 
 With MCP stdio, the client launches the server as a child process and reserves standard input and output for protocol traffic. See the [official MCP transport specification](https://modelcontextprotocol.io/specification/2025-11-25/basic/transports) for details.

@@ -49,10 +49,17 @@
 - `speak_text` の必須テキスト、最大長、未知フィールド、話者ID、音声調整値の境界を単体テストで確認
 - VOICEVOXの正常応答、HTTPエラー、不正JSON、空音声、サイズ上限を単体テストで確認
 - `go vet ./...` 成功
+- WindowsおよびUbuntu WSLで `go test -race ./...` 成功
+- WindowsおよびUbuntu WSLでCI相当のカバレッジ試験に成功。総ステートメントカバレッジは62.8%、`internal/voicevox` は89.8%
+- Ubuntu WSL（Go 1.26.1、ALSA開発ライブラリあり）で `go test ./...`、`go vet ./...`、Linuxバイナリのビルドに成功
+- WindowsからmacOS amd64向けのクロスビルドに成功
 
 ## 未実施・環境依存の確認
 
-- WindowsからLinux向けに単純クロスビルドするには、既存の `oto` が要求するALSA/CGOクロスツールチェーンを別途用意する必要がある
+- macOS実機での音声再生
+- 音声デバイスを備えたLinux実機での音声再生。Ubuntu WSLでは既定ALSAデバイスがないため、ビルドとテストまで確認
+- Claude Desktop／Claude Code／VS Codeからの実クライアントE2E。Claude CLIは未導入で、VS Code CLIからは非対話のツール実行結果を取得できないため未実施
+- GitHub Actions上の最終CI。ローカルではWindowsとUbuntu WSLの両方で同等のテストを実施済み
 
 ## VOICEVOX実機確認（2026-09-06）
 
@@ -62,3 +69,15 @@
 - `speak_text` を `speaker=3`, `wait=true` で呼び出し、`/audio_query` と `/synthesis` がHTTP 200を返すことを確認
 - MCP応答が `success=true`, `provider=voicevox`, `speaker=3`, `mode=sync` になることを確認
 - 同一MCPプロセスで `play_mcp_notification_sound`、続けて `speak_text` を同期実行し、共有する音声出力コンテキストで両方の再生が完了することを確認
+- `wait=false` と `speedScale=1.25`, `pitchScale=0.05`, `intonationScale=1.2`, `volumeScale=0.8` を指定した実機合成・非同期再生に成功
+- 同一MCPプロセスで3回の非同期読み上げと、その後の同期読み上げに成功
+- Engine停止時に `speak_text` が説明付きのツールエラーを返し、同じMCPプロセスの `play_mcp_notification_sound` は成功することを確認
+- VOICEVOX接続エラーからクエリ文字列を除去し、読み上げ本文がMCPエラー詳細へ含まれないことを単体テストと実プロセスで確認
+
+## Codex実クライアント確認（2026-09-06）
+
+- 設定を保存しない `codex exec --ephemeral` セッションへ、現在の `mcp-notify` をローカルstdioサーバとして登録
+- Codexが `notify` の `speak_text` を選択し、`speaker=3`, `wait=true` で呼び出して `success=true` を受け取ることを確認
+- 一時プロジェクトの `AGENTS.md` にクライアント非依存の発話ルール例を置き、発話を明示しない通常の依頼から `speak_text` が呼ばれることを確認
+- 発話内容が固定文ではなく、実際の結果から生成された短い日本語になり、`wait=false` で成功することを確認
+- 非対話実行ではMCPツール承認が必要なため、承認可能な実行モードを使用。テスト後、一時設定と一時指示ファイルは削除
