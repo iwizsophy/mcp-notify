@@ -5,12 +5,17 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 
 	"mcp-notify/internal/mcp"
 	"mcp-notify/internal/player"
+	"mcp-notify/internal/speech"
 	"mcp-notify/internal/validation"
+	"mcp-notify/internal/voicevox"
 )
 
 var version = "1.0.0"
@@ -50,6 +55,7 @@ func main() {
 		return
 	}
 
+	outputPlayer := player.New()
 	server := mcp.NewServer(config.serverName, version, logger)
 	server.SetInitializeCheck(func() *mcp.ResponseError {
 		if config.soundPath == "" {
@@ -69,11 +75,24 @@ func main() {
 	})
 	server.RegisterTool(mcp.NewPlayNotificationSoundTool(
 		validator,
-		player.New(),
+		outputPlayer,
 		config.soundPath,
 		config.wait,
 		config.toolPrefix,
 	))
+	if config.ttsProvider == "voicevox" {
+		voicevoxClient, err := voicevox.NewClient(config.voicevoxURL, &http.Client{Timeout: 30 * time.Second})
+		if err != nil {
+			logger.Fatalf("failed to configure VOICEVOX: %v", err)
+		}
+		speechService := speech.NewService(voicevoxClient, outputPlayer, logger)
+		server.RegisterTool(mcp.NewSpeakTextTool(
+			speechService,
+			config.voicevoxSpeaker,
+			config.wait,
+			config.toolPrefix,
+		))
+	}
 
 	if err := server.Serve(context.Background(), os.Stdin, os.Stdout); err != nil {
 		logger.Fatalf("server stopped with error: %v", err)
@@ -81,12 +100,15 @@ func main() {
 }
 
 type config struct {
-	soundPath     string
-	wait          bool
-	playOnceSound string
-	playOncePath  string
-	serverName    string
-	toolPrefix    string
+	soundPath       string
+	wait            bool
+	playOnceSound   string
+	playOncePath    string
+	serverName      string
+	toolPrefix      string
+	ttsProvider     string
+	voicevoxURL     string
+	voicevoxSpeaker int
 }
 
 func parseConfig(args []string) (config, error) {
@@ -100,6 +122,9 @@ func parseConfig(args []string) (config, error) {
 	fs.StringVar(&cfg.playOncePath, "play-once-path", "", "internal: absolute sound path to play once and exit")
 	fs.StringVar(&cfg.serverName, "server-name", "mcp-notify", "name returned from initialize.serverInfo.name")
 	fs.StringVar(&cfg.toolPrefix, "tool-prefix", "", "literal prefix added to the exposed MCP tool name")
+	fs.StringVar(&cfg.ttsProvider, "tts-provider", "", "optional text-to-speech provider (currently: voicevox)")
+	fs.StringVar(&cfg.voicevoxURL, "voicevox-url", "http://127.0.0.1:50021", "base URL of the VOICEVOX Engine HTTP API")
+	fs.IntVar(&cfg.voicevoxSpeaker, "voicevox-speaker", 3, "default VOICEVOX speaker/style ID")
 
 	if err := fs.Parse(args); err != nil {
 		return config{}, err
@@ -109,6 +134,13 @@ func parseConfig(args []string) (config, error) {
 	}
 	if cfg.playOnceSound != "" && cfg.playOncePath != "" {
 		return config{}, fmt.Errorf("--play-once cannot be combined with --play-once-path")
+	}
+	cfg.ttsProvider = strings.ToLower(strings.TrimSpace(cfg.ttsProvider))
+	if cfg.ttsProvider != "" && cfg.ttsProvider != "voicevox" {
+		return config{}, fmt.Errorf("unsupported --tts-provider %q (currently supported: voicevox)", cfg.ttsProvider)
+	}
+	if cfg.voicevoxSpeaker < 0 {
+		return config{}, fmt.Errorf("--voicevox-speaker must be zero or greater")
 	}
 
 	return cfg, nil

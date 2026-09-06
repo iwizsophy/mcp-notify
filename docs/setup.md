@@ -3,8 +3,9 @@
 ## Requirements
 
 - Go 1.26 or later
-- A local `sounds/` directory under the project or distribution directory
-- At least one supported audio file: `.wav` or `.mp3`
+- A local `sounds/` directory under the project or distribution directory when using notification sounds
+- At least one supported `.wav` or `.mp3` file when using notification sounds
+- A separately running VOICEVOX Engine only when using `speak_text`
 
 ## Build
 
@@ -67,7 +68,7 @@ Rejected values:
 - Optional
 - Default: `true`
 - `true`: synchronous playback
-- `false`: asynchronous playback via a detached helper process, so the MCP response can return immediately
+- `false`: asynchronous playback; notification sounds use a detached helper process, while speech returns after synthesis and continues only playback asynchronously
 
 ### `--play-once`
 
@@ -85,8 +86,25 @@ Rejected values:
 ### `--tool-prefix`
 
 - Optional
-- Added literally before `play_mcp_notification_sound`
-- Example: `--tool-prefix complete_` exposes `complete_play_mcp_notification_sound`
+- Added literally before every exposed tool name
+- Example: `--tool-prefix complete_` exposes `complete_play_mcp_notification_sound` and, when enabled, `complete_speak_text`
+
+### `--tts-provider`
+
+- Optional; no speech tool is exposed when omitted
+- Set to `voicevox` to expose `speak_text`
+
+### `--voicevox-url`
+
+- Base URL of the VOICEVOX Engine HTTP API
+- Default: `http://127.0.0.1:50021`
+- URL syntax is validated at startup, while connectivity is checked when `speak_text` is called
+
+### `--voicevox-speaker`
+
+- Default speaker/style ID for `speak_text`
+- Default: `3`
+- Query `/speakers` on the running Engine to find available IDs
 
 ## MCP Configuration Examples
 
@@ -117,6 +135,29 @@ Rejected values:
   }
 }
 ```
+
+### Combine notification sounds and VOICEVOX in one MCP server
+
+Start VOICEVOX Engine first and add TTS options to the same registration.
+
+```json
+{
+  "mcpServers": {
+    "notify": {
+      "command": "C:\\path\\to\\mcp-notify\\bin\\mcp-notify.exe",
+      "args": [
+        "--sound", "complete.wav",
+        "--tts-provider", "voicevox",
+        "--voicevox-url", "http://127.0.0.1:50021",
+        "--voicevox-speaker", "3"
+      ],
+      "cwd": "C:\\path\\to\\mcp-notify"
+    }
+  }
+}
+```
+
+This registration exposes both `play_mcp_notification_sound` and `speak_text`. VOICEVOX Engine is not bundled with this project.
 
 ### Launch with `go run`
 
@@ -198,6 +239,45 @@ Override the sound and playback mode for one call:
 }
 ```
 
+### `speak_text`
+
+This tool is exposed only with `--tts-provider voicevox`.
+
+Example input:
+
+```json
+{
+  "text": "The task is complete.",
+  "speaker": 3,
+  "wait": false,
+  "speedScale": 1.1,
+  "pitchScale": 0.0,
+  "intonationScale": 1.0,
+  "volumeScale": 1.0
+}
+```
+
+- `text`: required; 1–1000 characters after trimming surrounding whitespace
+- `speaker`: optional non-negative speaker/style ID
+- `wait`: optional; defaults to the startup `--wait` value
+- `speedScale`: optional, 0.5–2.0
+- `pitchScale`: optional, -0.15–0.15
+- `intonationScale`: optional, 0.0–2.0
+- `volumeScale`: optional, 0.0–2.0
+
+Even with `wait=false`, the tool waits for VOICEVOX synthesis to complete and only continues local playback asynchronously. This keeps connection and synthesis errors visible in the tool response.
+
+Example successful response:
+
+```json
+{
+  "success": true,
+  "provider": "voicevox",
+  "speaker": 3,
+  "mode": "async"
+}
+```
+
 ### Initialization error example
 
 ```json
@@ -244,6 +324,14 @@ Check that ALSA development/runtime support and a usable audio output device are
 
 Set `--wait=true` if you want the MCP tool call to block until playback finishes.
 
+### `speak_text` reports a VOICEVOX connection error
+
+- Confirm that VOICEVOX Engine is running
+- Confirm that `--voicevox-url` matches the Engine listener URL
+- Confirm that the selected `speaker` exists in `/speakers`
+
+Notification sounds do not depend on VOICEVOX, so `play_mcp_notification_sound` remains available.
+
 ### Hook-style direct execution
 
 Use `--play-once` if the caller cannot keep an MCP stdio session alive:
@@ -251,3 +339,7 @@ Use `--play-once` if the caller cannot keep an MCP stdio session alive:
 ```powershell
 .\bin\mcp-notify.exe --play-once complete.wav --wait=false
 ```
+
+## VOICEVOX Terms
+
+This project does not bundle or redistribute VOICEVOX Engine or its voice libraries. Before using or publishing generated audio, review the [VOICEVOX terms](https://voicevox.hiroshiba.jp/term/) and the terms for each character. Credit is normally written in the form `VOICEVOX:Character Name`.

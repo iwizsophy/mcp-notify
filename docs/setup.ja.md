@@ -3,8 +3,9 @@
 ## 要件
 
 - Go 1.26 以上
-- プロジェクトまたは配布ディレクトリ配下に `sounds/` ディレクトリがあること
-- `.wav` または `.mp3` の音声ファイルが少なくとも 1 つあること
+- 通知音を使う場合、プロジェクトまたは配布ディレクトリ配下に `sounds/` ディレクトリがあること
+- 通知音を使う場合、`.wav` または `.mp3` の音声ファイルが少なくとも 1 つあること
+- `speak_text` を使う場合のみ、別途起動したVOICEVOX Engine
 
 ## ビルド
 
@@ -67,7 +68,7 @@ Remove-Item Env:GOOS
 - 省略可
 - デフォルトは `true`
 - `true`: 同期再生
-- `false`: 非同期再生。別プロセスへ切り出して再生するため、MCP の応答を先に返せます
+- `false`: 非同期再生。通知音では別プロセスへ切り出してMCPの応答を先に返します。読み上げでは合成完了後、再生だけを非同期に続けます
 
 ### `--play-once`
 
@@ -85,8 +86,25 @@ Remove-Item Env:GOOS
 ### `--tool-prefix`
 
 - 省略可
-- `play_mcp_notification_sound` の前に文字列をそのまま付与します
-- 例: `--tool-prefix complete_` なら `complete_play_mcp_notification_sound` を公開します
+- 公開するすべてのツール名の前に文字列をそのまま付与します
+- 例: `--tool-prefix complete_` なら `complete_play_mcp_notification_sound` と、有効な場合は `complete_speak_text` を公開します
+
+### `--tts-provider`
+
+- 省略可。省略時は読み上げツールを公開しません
+- `voicevox` を指定すると `speak_text` を公開します
+
+### `--voicevox-url`
+
+- VOICEVOX Engine HTTP APIのベースURL
+- デフォルトは `http://127.0.0.1:50021`
+- URL形式は起動時に検証しますが、Engineへの接続は `speak_text` 呼び出し時に行います
+
+### `--voicevox-speaker`
+
+- `speak_text` の既定の話者・スタイルID
+- デフォルトは `3`
+- 利用可能なIDは稼働中のEngineの `/speakers` で確認できます
 
 ## MCP 設定例
 
@@ -117,6 +135,29 @@ Remove-Item Env:GOOS
   }
 }
 ```
+
+### 通知音とVOICEVOX読み上げを1つのMCPに統合
+
+先にVOICEVOX Engineを起動し、同じ登録へTTSオプションを追加します。
+
+```json
+{
+  "mcpServers": {
+    "notify": {
+      "command": "C:\\path\\to\\mcp-notify\\bin\\mcp-notify.exe",
+      "args": [
+        "--sound", "complete.wav",
+        "--tts-provider", "voicevox",
+        "--voicevox-url", "http://127.0.0.1:50021",
+        "--voicevox-speaker", "3"
+      ],
+      "cwd": "C:\\path\\to\\mcp-notify"
+    }
+  }
+}
+```
+
+この登録から `play_mcp_notification_sound` と `speak_text` の2ツールが公開されます。VOICEVOX Engineは本プロジェクトに同梱されません。
 
 ### `go run` で起動
 
@@ -198,6 +239,45 @@ Codex では、たとえば `AGENTS.md` に次のようなルールを書けま�
 }
 ```
 
+### `speak_text`
+
+`--tts-provider voicevox` を指定した場合だけ公開されます。
+
+入力例:
+
+```json
+{
+  "text": "処理が完了しました",
+  "speaker": 3,
+  "wait": false,
+  "speedScale": 1.1,
+  "pitchScale": 0.0,
+  "intonationScale": 1.0,
+  "volumeScale": 1.0
+}
+```
+
+- `text`: 必須。前後空白を除いて1～1000文字
+- `speaker`: 省略可。0以上の話者・スタイルID
+- `wait`: 省略可。起動時の `--wait` を既定値にします
+- `speedScale`: 省略可。0.5～2.0
+- `pitchScale`: 省略可。-0.15～0.15
+- `intonationScale`: 省略可。0.0～2.0
+- `volumeScale`: 省略可。0.0～2.0
+
+`wait=false` でもVOICEVOXによる合成は完了まで待ち、ローカル再生だけを非同期で続けます。これにより接続・合成エラーはツール応答で確認できます。
+
+成功レスポンス例:
+
+```json
+{
+  "success": true,
+  "provider": "voicevox",
+  "speaker": 3,
+  "mode": "async"
+}
+```
+
 ### 初期化エラー例
 
 ```json
@@ -244,6 +324,14 @@ Codex では、たとえば `AGENTS.md` に次のようなルールを書けま�
 
 再生完了まで待ちたい場合は `--wait=true` にしてください。
 
+### `speak_text` がVOICEVOX接続エラーを返す
+
+- VOICEVOX Engineが起動しているか確認してください
+- `--voicevox-url` がEngineの待受URLと一致するか確認してください
+- 指定した `speaker` が `/speakers` に存在するか確認してください
+
+通知音はVOICEVOXに依存しないため、この状態でも `play_mcp_notification_sound` は利用できます。
+
 ### hook のような単発実行で使いたい
 
 MCP の stdio セッションを維持できない呼び出し元では `--play-once` を使ってください。
@@ -251,3 +339,7 @@ MCP の stdio セッションを維持できない呼び出し元では `--play-
 ```powershell
 .\bin\mcp-notify.exe --play-once complete.wav --wait=false
 ```
+
+## VOICEVOXの利用条件
+
+本プロジェクトはVOICEVOX Engineや音声ライブラリを同梱・再配布しません。生成音声を利用・公開する場合は、[VOICEVOX利用規約](https://voicevox.hiroshiba.jp/term/)と各キャラクターの利用規約を確認してください。クレジット表記は通常 `VOICEVOX:キャラクター名` の形式です。

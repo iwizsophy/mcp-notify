@@ -21,3 +21,10 @@ func (p *Player) Play(_ context.Context, _ string, _ bool) *validation.AppError 
 		"this build currently supports Windows, macOS, and Linux; detected GOOS="+runtime.GOOS,
 	)
 }
+
+func (p *Player) PlayWAV(_ context.Context, _ []byte) *validation.AppError {
+	return validation.NewAppError(
+		"unsupported operating system",
+		"this build currently supports Windows, macOS, and Linux; detected GOOS="+runtime.GOOS,
+	)
+}

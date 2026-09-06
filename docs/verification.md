@@ -3,10 +3,13 @@
 ## 実施項目
 
 - `go test ./...`
-- `GOOS=windows`, `GOOS=darwin`, `GOOS=linux` で `go build ./cmd/mcp-notify`
+- `GOOS=windows`, `GOOS=darwin` で `go build ./cmd/mcp-notify`。LinuxはALSA/CGOツールチェーンを備えた環境で確認
 - Windows 上で `go run ./cmd/mcp-notify --sound complete.wav` を起動し、stdio 経由で `initialize` / `tools/list` / `tools/call` を確認
 - 正常系: 起動時 `--sound complete.wav`, 起動時 `--sound alerts/sample.mp3 --wait=false`
 - 異常系: ファイル未存在 / 非対応拡張子 / 絶対パス / パストラバーサル / 起動時既定値なしでツール呼び出し
+- `--tts-provider voicevox` 指定時の `speak_text` 登録と入力検証
+- モックHTTPサーバを使ったVOICEVOX `/audio_query` / `/synthesis` の要求・応答確認
+- モノラルおよび異なるサンプルレートのWAVを共通再生形式へ変換する単体テスト
 
 ## 確認コマンド例
 
@@ -33,8 +36,9 @@
 - `go build ./cmd/mcp-notify` 成功
 - `GOOS=windows go build ./cmd/mcp-notify` 成功
 - `GOOS=darwin go build ./cmd/mcp-notify` 成功
-- `GOOS=linux go build ./cmd/mcp-notify` 成功
+- `GOOS=linux go build ./cmd/mcp-notify` はLinux/ALSAツールチェーンを備えた環境で成功
 - `tools/list` で `play_mcp_notification_sound` を確認
+- `--tts-provider voicevox` の `tools/list` で `play_mcp_notification_sound` と `speak_text` を確認
 - 起動時 `--sound complete.wav` で `success=true`, `mode=sync`
 - 起動時 `--sound alerts/sample.mp3 --wait=false` で `success=true`, `mode=async`
 - `--sound missing.wav` で `initialize` が `invalid startup sound configuration` を返す
@@ -42,3 +46,11 @@
 - `--sound C:\Temp\outside.wav` で `initialize` が `invalid startup sound configuration` を返す
 - `--sound ../escape.wav` で `initialize` が `invalid startup sound configuration` を返す
 - `--sound` 未指定のまま `arguments={}` で `tools/call` すると `success=false` と説明可能な `error` / `details` を返す
+- `speak_text` の必須テキスト、最大長、未知フィールド、話者ID、音声調整値の境界を単体テストで確認
+- VOICEVOXの正常応答、HTTPエラー、不正JSON、空音声、サイズ上限を単体テストで確認
+- `go vet ./...` 成功
+
+## 今回未実施の実機確認
+
+- 実際のVOICEVOX Engineと音声デバイスを組み合わせた読み上げは、Engineが稼働している環境で確認が必要
+- WindowsからLinux向けに単純クロスビルドするには、既存の `oto` が要求するALSA/CGOクロスツールチェーンを別途用意する必要がある

@@ -4,9 +4,9 @@
 
 # mcp-notify
 
-`mcp-notify` is a stdio-based MCP server written in Go that plays a local notification sound on the current machine.
+`mcp-notify` is a stdio-based MCP server written in Go that plays local notification sounds and synthesized speech.
 
-Call the MCP tool `play_mcp_notification_sound` to play either the file configured at server startup or a file selected at call time.
+Call `play_mcp_notification_sound` to play an audio file. Configure an external VOICEVOX Engine to add `speak_text` to the same MCP server.
 
 Japanese documentation is available in [README.ja.md](README.ja.md).
 
@@ -26,7 +26,8 @@ As a side effect, your workspace may become slightly noisier. Whether that happe
 
 ## What It Does
 
-- Provides one MCP tool: `play_mcp_notification_sound`
+- Always provides `play_mcp_notification_sound`
+- Adds `speak_text` to the same MCP server when VOICEVOX integration is enabled
 - Plays a sound file under the local `sounds/` directory
 - Supports `.wav` and `.mp3`
 - Works primarily on Windows, with macOS and Linux support
@@ -61,6 +62,28 @@ Example `mcpServers` entry:
   }
 }
 ```
+
+### Use VOICEVOX through the same MCP server
+
+Start VOICEVOX Engine separately, then add the TTS options to the same server registration. The default Engine URL is `http://127.0.0.1:50021`.
+
+```json
+{
+  "mcpServers": {
+    "notify": {
+      "command": "C:\\path\\to\\mcp-notify\\bin\\mcp-notify.exe",
+      "args": [
+        "--sound", "complete.wav",
+        "--tts-provider", "voicevox",
+        "--voicevox-speaker", "3"
+      ],
+      "cwd": "C:\\path\\to\\mcp-notify"
+    }
+  }
+}
+```
+
+This single registration exposes both `play_mcp_notification_sound` and `speak_text`. VOICEVOX Engine is not bundled with this project.
 
 If you want asynchronous playback:
 
@@ -173,13 +196,29 @@ Successful response example:
 }
 ```
 
+Speech example when VOICEVOX integration is enabled:
+
+```json
+{
+  "text": "The task is complete.",
+  "speaker": 3,
+  "wait": false,
+  "speedScale": 1.1
+}
+```
+
+`speaker` is a VOICEVOX speaker/style ID. Check `/speakers` on the Engine you run. Omitting `speaker`, `wait`, or the speech controls uses the startup or VOICEVOX query defaults.
+
 ## Startup Options
 
 - `--sound`: optional relative file name or subpath under `sounds/`
 - `--wait`: optional, default `true`
 - `--play-once`: optional relative file name or subpath under `sounds/`; plays once and exits instead of starting the MCP server
 - `--server-name`: optional, default `mcp-notify`; overrides `initialize.serverInfo.name`
-- `--tool-prefix`: optional literal prefix added to `play_mcp_notification_sound`
+- `--tool-prefix`: optional literal prefix added to every exposed tool name
+- `--tts-provider`: optional; set to `voicevox` to expose `speak_text`
+- `--voicevox-url`: optional VOICEVOX Engine base URL; default `http://127.0.0.1:50021`
+- `--voicevox-speaker`: optional default speaker/style ID; default `3`
 
 ## Important Behavior
 
@@ -190,6 +229,10 @@ Successful response example:
 - `--wait=true` waits for playback to finish
 - `--wait=false` returns immediately and keeps playback running in a detached helper process
 - Invalid startup configuration causes `initialize` to return an MCP error when `--sound` is set
+- `speak_text` accepts 1–1000 characters after trimming surrounding whitespace
+- With `speak_text`, `wait=false` returns after synthesis completes and continues only playback asynchronously inside the server
+- Engine connection or synthesis failures are reported as descriptive `speak_text` tool errors and do not disable the sound tool
+- `--tool-prefix` applies to both exposed tool names
 
 ## Platform Notes
 
@@ -201,6 +244,11 @@ Successful response example:
 
 - If you omit both startup `--sound` and tool-call `soundPath`, the tool returns an error
 - Replacing the configured sound file with a different sample rate or channel count requires restarting the server
+- VOICEVOX Engine must run as a separate process while using `speak_text`
+
+## VOICEVOX Terms
+
+This project does not bundle or redistribute VOICEVOX Engine or its voice libraries; it only calls a configured HTTP API. Before using or publishing generated audio, review the [VOICEVOX terms](https://voicevox.hiroshiba.jp/term/) and the terms for each character you use. Credit is normally written in the form `VOICEVOX:Character Name`.
 
 ## Docs
 

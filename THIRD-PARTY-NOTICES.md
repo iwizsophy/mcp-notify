@@ -31,6 +31,20 @@ documentation and release materials.
 - Other company, product, and service names mentioned may be trademarks of
   their respective owners.
 
+## Optional external interoperability
+
+### VOICEVOX
+
+- `mcp-notify` can optionally call a separately installed and running VOICEVOX
+  Engine over its HTTP API.
+- VOICEVOX Engine, voice libraries, character assets, and synthesized audio are
+  not included in this repository's Go dependency graph and are not bundled or
+  redistributed by this project.
+- Users are responsible for complying with the VOICEVOX terms and the terms for
+  each voice or character they use: `https://voicevox.hiroshiba.jp/term/`.
+- VOICEVOX is referenced only to identify compatible external software and no
+  affiliation or endorsement is implied.
+
 ## Current modules
 
 ### github.com/ebitengine/oto/v3 v3.4.0

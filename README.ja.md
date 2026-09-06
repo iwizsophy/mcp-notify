@@ -4,9 +4,9 @@
 
 # mcp-notify
 
-`mcp-notify` は、ローカル端末で通知音を再生する Go 製の stdio ベース MCP サーバです。
+`mcp-notify` は、ローカル端末で通知音や合成音声を再生する Go 製の stdio ベース MCP サーバです。
 
-MCP ツール `play_mcp_notification_sound` で、サーバ起動時に設定した音声ファイルか、呼び出し時に指定した音声ファイルを再生できます。
+MCP ツール `play_mcp_notification_sound` で音声ファイルを再生できます。外部の VOICEVOX Engine を設定すると、同じ MCP サーバに `speak_text` が追加されます。
 
 English version: [README.md](README.md)
 
@@ -26,7 +26,8 @@ MCP を用いた開発フローでは、ツールの実行結果やユーザー�
 
 ## できること
 
-- MCP ツール `play_mcp_notification_sound` を 1 つ提供します
+- 常に MCP ツール `play_mcp_notification_sound` を提供します
+- VOICEVOX連携を有効にすると、同じMCPサーバに `speak_text` も提供します
 - ローカルの `sounds/` ディレクトリ配下の音声ファイルを再生します
 - `.wav` と `.mp3` に対応しています
 - 主対象は Windows で、macOS と Linux でも動作します
@@ -61,6 +62,28 @@ go test ./...
   }
 }
 ```
+
+### VOICEVOXも同じMCPで使う
+
+VOICEVOX Engineを別途起動してから、同じサーバ登録にTTSオプションを追加します。既定のEngine URLは `http://127.0.0.1:50021` です。
+
+```json
+{
+  "mcpServers": {
+    "notify": {
+      "command": "C:\\path\\to\\mcp-notify\\bin\\mcp-notify.exe",
+      "args": [
+        "--sound", "complete.wav",
+        "--tts-provider", "voicevox",
+        "--voicevox-speaker", "3"
+      ],
+      "cwd": "C:\\path\\to\\mcp-notify"
+    }
+  }
+}
+```
+
+この1つの登録から `play_mcp_notification_sound` と `speak_text` の両方が見えます。VOICEVOX Engineは本プロジェクトに同梱されません。
 
 非同期再生にしたい場合:
 
@@ -163,6 +186,19 @@ complete_play_mcp_notification_sound
 }
 ```
 
+VOICEVOX連携時の読み上げ例:
+
+```json
+{
+  "text": "処理が完了しました",
+  "speaker": 3,
+  "wait": false,
+  "speedScale": 1.1
+}
+```
+
+`speaker` はVOICEVOXの話者・スタイルIDです。利用中のEngineの `/speakers` で確認してください。`speaker`、`wait`、各音声調整値を省略すると起動時またはVOICEVOX側の既定値を使います。
+
 成功レスポンス例:
 
 ```json
@@ -179,7 +215,10 @@ complete_play_mcp_notification_sound
 - `--wait`: 省略可。デフォルトは `true`
 - `--play-once`: 省略可。`sounds/` 配下の相対ファイルを 1 回再生して終了します
 - `--server-name`: 省略可。デフォルトは `mcp-notify`。`initialize.serverInfo.name` を上書きします
-- `--tool-prefix`: 省略可。`play_mcp_notification_sound` の前にそのまま付与する文字列です
+- `--tool-prefix`: 省略可。公開するすべてのツール名の前にそのまま付与する文字列です
+- `--tts-provider`: 省略可。`voicevox` を指定すると `speak_text` を追加します
+- `--voicevox-url`: 省略可。VOICEVOX EngineのベースURL。デフォルトは `http://127.0.0.1:50021`
+- `--voicevox-speaker`: 省略可。既定の話者・スタイルID。デフォルトは `3`
 
 ## 重要な挙動
 
@@ -190,6 +229,10 @@ complete_play_mcp_notification_sound
 - `--wait=true` は再生完了まで待機します
 - `--wait=false` は別プロセスで再生を続けつつ、ツール呼び出しを先に復帰させます
 - `--sound` を指定していて起動時設定が不正な場合、`initialize` は MCP エラーを返します
+- `speak_text` は文字列の前後空白を除いて1～1000文字を受け付けます
+- `speak_text` の `wait=false` はVOICEVOXでの合成完了後に応答し、再生だけをサーバ内で非同期に続けます
+- Engineへの接続や合成に失敗した場合、`speak_text` は説明付きのツールエラーを返します。通知音ツールには影響しません
+- `--tool-prefix` は両方のツール名に適用されます
 
 ## プラットフォーム補足
 
@@ -201,6 +244,11 @@ complete_play_mcp_notification_sound
 
 - 起動時 `--sound` と呼び出し時 `soundPath` の両方を省略すると、ツールはエラーを返します
 - 設定済みの音声ファイルを別のサンプルレートやチャンネル数のものに差し替えた場合はサーバ再起動が必要です
+- `speak_text` を使う間はVOICEVOX Engineを別プロセスで稼働させる必要があります
+
+## VOICEVOXの利用条件
+
+このプロジェクトはVOICEVOX Engineや音声ライブラリを同梱・再配布せず、設定されたHTTP APIとのみ通信します。生成音声を利用・公開するときは、[VOICEVOX利用規約](https://voicevox.hiroshiba.jp/term/)と、使用するキャラクターごとの規約を確認してください。クレジット表記は通常 `VOICEVOX:キャラクター名` の形式です。
 
 ## ドキュメント
 

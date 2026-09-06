@@ -6,11 +6,18 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added
+
+- Optional `speak_text` MCP tool backed by a separately running VOICEVOX Engine
+- Runtime controls for VOICEVOX speaker/style, speed, pitch, intonation, volume, and synchronous or asynchronous playback
+
 ### Changed
 
 - CI `push` triggers now explicitly target all branches, fixing the previous
   misconfiguration where `tags-ignore` alone prevented branch pushes from
   creating runs
+- Notification files and synthesized speech now share one normalized 48 kHz stereo audio output context
+- Updated `actions/checkout` from v6 to v7 and `softprops/action-gh-release` from v2 to v3
 
 ## [1.1.0] - 2026-04-04
 
