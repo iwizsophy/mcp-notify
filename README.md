@@ -65,7 +65,7 @@ Example `mcpServers` entry:
 
 ### Use VOICEVOX through the same MCP server
 
-Start VOICEVOX Engine separately, then add the TTS options to the same server registration. The default Engine URL is `http://127.0.0.1:50021`.
+Install VOICEVOX from the [official website](https://voicevox.hiroshiba.jp/), start its Engine, then add the TTS options to the same server registration. The default Engine URL is `http://127.0.0.1:50021`. See the [setup guide](docs/setup.md#installing-voicevox-engine) for desktop, Docker, and standalone Engine options.
 
 ```json
 {
@@ -248,7 +248,11 @@ Speech example when VOICEVOX integration is enabled:
 
 ## VOICEVOX Terms
 
-This project does not bundle or redistribute VOICEVOX Engine or its voice libraries; it only calls a configured HTTP API. Before using or publishing generated audio, review the [VOICEVOX terms](https://voicevox.hiroshiba.jp/term/) and the terms for each character you use. Credit is normally written in the form `VOICEVOX:Character Name`.
+VOICEVOX Engine is dual-licensed under LGPL v3 and a separate license that does not require source disclosure. See the [official VOICEVOX Engine license](https://github.com/VOICEVOX/voicevox_engine/blob/master/LICENSE) for details.
+
+This project does not bundle, link, or redistribute VOICEVOX Engine, voice libraries, or character assets. It only calls the HTTP API of an Engine started separately by the user, so VOICEVOX Engine is not part of the `mcp-notify` Go dependency graph or release package. Revisit the distribution model and license obligations before bundling any of those components in the future.
+
+Before using or publishing generated audio, review the [VOICEVOX software terms](https://voicevox.hiroshiba.jp/term/) and the terms for each character listed on the [official website](https://voicevox.hiroshiba.jp/). Credit is normally written in the form `VOICEVOX:Character Name`. See the [official Q&A](https://voicevox.hiroshiba.jp/qa/) for placement guidance when audio is played as an announcement or from a device.
 
 ## Docs
 

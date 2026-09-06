@@ -7,6 +7,53 @@
 - 通知音を使う場合、`.wav` または `.mp3` の音声ファイルが少なくとも 1 つあること
 - `speak_text` を使う場合のみ、別途起動したVOICEVOX Engine
 
+## VOICEVOX Engineの導入
+
+`mcp-notify` はVOICEVOX Engineを同梱・自動インストール・自動起動しません。`speak_text` を使う場合は、次のいずれかの方法でEngineを別途起動してください。
+
+### デスクトップ版（推奨）
+
+1. [VOICEVOX公式サイト](https://voicevox.hiroshiba.jp/)から利用するOS向けのVOICEVOXをダウンロードしてインストールします
+2. VOICEVOXデスクトップアプリを起動します
+3. 読み上げ中はアプリを起動したままにします。通常、内蔵Engineは `http://127.0.0.1:50021` で待ち受けます
+
+### 単体Engine
+
+[VOICEVOX Engineの公式リリース](https://github.com/VOICEVOX/voicevox_engine/releases)からOSに対応した配布物を取得し、同梱の `run` または `run.exe` を起動します。利用可能な起動引数は `run --help` または `run.exe --help` で確認してください。
+
+### Docker（CPU版）
+
+公式Engineが案内しているCPUイメージの例です。
+
+```powershell
+docker pull voicevox/voicevox_engine:cpu-latest
+docker run --rm -p 127.0.0.1:50021:50021 voicevox/voicevox_engine:cpu-latest
+```
+
+再現可能な環境が必要な場合は、公式に公開されている固定バージョンのタグを選んでください。GPU版を含む最新の起動方法は[VOICEVOX Engine公式ガイド](https://github.com/VOICEVOX/voicevox_engine#ユーザーガイド)を参照してください。
+
+### 起動確認
+
+Windows PowerShellでは次のように確認できます。
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:50021/version
+Invoke-RestMethod http://127.0.0.1:50021/speakers | Select-Object -ExpandProperty name
+```
+
+macOSまたはLinuxでは、たとえば次のコマンドを使用できます。
+
+```bash
+curl -fsS http://127.0.0.1:50021/version
+curl -fsS http://127.0.0.1:50021/speakers
+```
+
+Engineまたはデスクトップアプリの起動中は、ブラウザで `http://127.0.0.1:50021/docs` を開くと、そのEngineのAPI仕様を確認できます。`/version` が応答してからMCPサーバを起動してください。
+
+### 接続先とプライバシー
+
+既定のローカルURLを推奨します。`--voicevox-url` に別ホストを指定すると、`speak_text` に渡した文章がそのホストへ送信されます。`mcp-notify` 自体はVOICEVOX接続用の認証機能を提供しないため、外部接続では信頼できる接続先、HTTPS、アクセス制御されたネットワークまたは認証付きリバースプロキシを使用してください。Engineのポート50021をインターネットへ直接公開しないでください。
+
 ## ビルド
 
 ```powershell
@@ -342,4 +389,6 @@ MCP の stdio セッションを維持できない呼び出し元では `--play-
 
 ## VOICEVOXの利用条件
 
-本プロジェクトはVOICEVOX Engineや音声ライブラリを同梱・再配布しません。生成音声を利用・公開する場合は、[VOICEVOX利用規約](https://voicevox.hiroshiba.jp/term/)と各キャラクターの利用規約を確認してください。クレジット表記は通常 `VOICEVOX:キャラクター名` の形式です。
+VOICEVOX EngineはLGPL v3と別ライセンスのデュアルライセンスです。詳細は[Engineの公式ライセンス](https://github.com/VOICEVOX/voicevox_engine/blob/master/LICENSE)を確認してください。本プロジェクトはEngine、音声ライブラリ、キャラクター素材を同梱・リンク・再配布せず、別プロセスのHTTP APIとのみ通信します。
+
+生成音声を利用・公開する場合は、[VOICEVOXソフトウェア利用規約](https://voicevox.hiroshiba.jp/term/)と[各キャラクターの利用規約](https://voicevox.hiroshiba.jp/)を確認してください。クレジット表記は通常 `VOICEVOX:キャラクター名` の形式です。音声案内などでの表示方法は[公式Q&A](https://voicevox.hiroshiba.jp/qa/)も参照してください。

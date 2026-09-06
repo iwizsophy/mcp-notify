@@ -68,6 +68,13 @@ Detached playback re-exec helpers live alongside the platform-specific detach fi
 - VOICEVOX responses are bounded to 4 MiB for audio queries and 32 MiB for synthesized WAV data
 - The VOICEVOX URL is trusted startup configuration and must use HTTP or HTTPS without a query string or fragment
 
+## Licensing and Distributed Assets
+
+- `mcp-notify` communicates with VOICEVOX Engine as a separately installed and running HTTP service; the Engine is not part of the Go dependency graph or release archive
+- Reassess licensing and distribution obligations before embedding or bundling an Engine, voice library, character asset, or generated voice sample
+- Record the source and distribution terms of every audio, image, or other non-code asset in `THIRD-PARTY-NOTICES.md`
+- Keep the canonical `LICENSE`, its reference translation, README license summary, and release packaging list consistent
+
 ## Verification
 
 See [verification.md](verification.md) for the current manual verification memo.

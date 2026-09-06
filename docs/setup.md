@@ -7,6 +7,53 @@
 - At least one supported `.wav` or `.mp3` file when using notification sounds
 - A separately running VOICEVOX Engine only when using `speak_text`
 
+## Installing VOICEVOX Engine
+
+`mcp-notify` does not bundle, automatically install, or automatically start VOICEVOX Engine. To use `speak_text`, start the Engine separately using one of the following options.
+
+### Desktop application (recommended)
+
+1. Download and install VOICEVOX for your operating system from the [official website](https://voicevox.hiroshiba.jp/)
+2. Start the VOICEVOX desktop application
+3. Keep it running while speech is in use. Its bundled Engine normally listens at `http://127.0.0.1:50021`
+
+### Standalone Engine
+
+Download the package for your operating system from the [official VOICEVOX Engine releases](https://github.com/VOICEVOX/voicevox_engine/releases), then start the included `run` or `run.exe`. Use `run --help` or `run.exe --help` to inspect the available startup options.
+
+### Docker (CPU)
+
+The official Engine documents the following CPU image commands:
+
+```powershell
+docker pull voicevox/voicevox_engine:cpu-latest
+docker run --rm -p 127.0.0.1:50021:50021 voicevox/voicevox_engine:cpu-latest
+```
+
+For reproducible environments, select a fixed version tag published by the project. See the [official VOICEVOX Engine guide](https://github.com/VOICEVOX/voicevox_engine) for current instructions, including GPU images.
+
+### Verify startup
+
+On Windows PowerShell:
+
+```powershell
+Invoke-RestMethod http://127.0.0.1:50021/version
+Invoke-RestMethod http://127.0.0.1:50021/speakers | Select-Object -ExpandProperty name
+```
+
+On macOS or Linux:
+
+```bash
+curl -fsS http://127.0.0.1:50021/version
+curl -fsS http://127.0.0.1:50021/speakers
+```
+
+While the Engine or desktop application is running, open `http://127.0.0.1:50021/docs` to inspect that Engine's API documentation. Start the MCP server after `/version` responds.
+
+### Endpoint and privacy
+
+The default local URL is recommended. If `--voicevox-url` names another host, text passed to `speak_text` is sent to that host. `mcp-notify` does not provide VOICEVOX connection authentication, so external connections should use a trusted endpoint, HTTPS, an access-controlled network, or an authenticated reverse proxy. Do not expose Engine port 50021 directly to the public internet.
+
 ## Build
 
 ```powershell
@@ -342,4 +389,6 @@ Use `--play-once` if the caller cannot keep an MCP stdio session alive:
 
 ## VOICEVOX Terms
 
-This project does not bundle or redistribute VOICEVOX Engine or its voice libraries. Before using or publishing generated audio, review the [VOICEVOX terms](https://voicevox.hiroshiba.jp/term/) and the terms for each character. Credit is normally written in the form `VOICEVOX:Character Name`.
+VOICEVOX Engine is dual-licensed under LGPL v3 and a separate license. See the [official Engine license](https://github.com/VOICEVOX/voicevox_engine/blob/master/LICENSE) for details. This project does not bundle, link, or redistribute the Engine, voice libraries, or character assets; it only communicates with a separate process over HTTP.
+
+Before using or publishing generated audio, review the [VOICEVOX software terms](https://voicevox.hiroshiba.jp/term/) and the [terms for each character](https://voicevox.hiroshiba.jp/). Credit is normally written in the form `VOICEVOX:Character Name`. See the [official Q&A](https://voicevox.hiroshiba.jp/qa/) for credit placement guidance for announcements and other device playback.

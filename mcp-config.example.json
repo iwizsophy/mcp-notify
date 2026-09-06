@@ -1,13 +1,13 @@
 {
   "mcpServers": {
     "notify": {
-      "command": "D:\\Source\\Self\\mcp-notify\\bin\\mcp-notify.exe",
+      "command": "C:\\path\\to\\mcp-notify\\bin\\mcp-notify.exe",
       "args": [
         "--sound", "complete.wav",
         "--tts-provider", "voicevox",
         "--voicevox-speaker", "3"
       ],
-      "cwd": "D:\\Source\\Self\\mcp-notify"
+      "cwd": "C:\\path\\to\\mcp-notify"
     }
   }
 }

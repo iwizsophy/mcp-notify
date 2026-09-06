@@ -10,6 +10,8 @@ documentation and release materials.
 - Listed items cover modules explicitly present in `go.mod`, including indirect
   entries.
 - The Go standard library is not listed here.
+- Project-provided non-code assets and optional external interoperability are
+  described in separate sections below.
 - Additional transitive dependencies that are not represented in `go.mod` are
   reviewed during dependency updates and release validation, but are not listed
   separately by default.
@@ -37,13 +39,40 @@ documentation and release materials.
 
 - `mcp-notify` can optionally call a separately installed and running VOICEVOX
   Engine over its HTTP API.
-- VOICEVOX Engine, voice libraries, character assets, and synthesized audio are
-  not included in this repository's Go dependency graph and are not bundled or
-  redistributed by this project.
-- Users are responsible for complying with the VOICEVOX terms and the terms for
-  each voice or character they use: `https://voicevox.hiroshiba.jp/term/`.
+- VOICEVOX Engine is dual-licensed under LGPL v3 and a separate license that
+  does not require source disclosure. See the
+  [official Engine license](https://github.com/VOICEVOX/voicevox_engine/blob/master/LICENSE).
+- VOICEVOX Engine, voice libraries, and character assets are not included in
+  this repository's Go dependency graph and are not bundled, linked, or
+  redistributed by this project. The release archives therefore do not contain
+  VOICEVOX binaries or license files.
+- Users are responsible for complying with the VOICEVOX software terms and the
+  terms for each voice or character they use. See the
+  [VOICEVOX software terms](https://voicevox.hiroshiba.jp/term/) and the
+  [official character list](https://voicevox.hiroshiba.jp/).
+- Credit placement guidance for announcements and device playback is available
+  in the [official Q&A](https://voicevox.hiroshiba.jp/qa/).
 - VOICEVOX is referenced only to identify compatible external software and no
   affiliation or endorsement is implied.
+
+If a future release bundles VOICEVOX Engine, a voice library, character assets,
+or generated voice samples, maintainers must reassess the distribution terms
+and add all required licenses, notices, source-offer information, and credits.
+
+## Bundled project assets
+
+The following project-provided assets are distributed under this repository's
+MIT license and have no separate third-party notice:
+
+- `docs/assets/mcp-notify-icon.png`
+- `sounds/complete.wav`
+- `sounds/作業終了.wav`
+- `sounds/通知 音 完了.wav`
+- `sounds/alerts/sample.mp3`
+
+Contributors must not add third-party media or VOICEVOX-generated audio to a
+release without documenting its source, applicable license or terms, and any
+required attribution in this file.
 
 ## Current modules
 
@@ -89,6 +118,8 @@ documentation and release materials.
 - Re-check license terms when dependency versions change.
 - Re-check trademark attribution needs when distributed documentation, release
   contents, or third-party tooling references change.
+- Record provenance and distribution terms whenever bundled media assets are
+  added or replaced.
 - If a module ships multiple notices or mixed-license files, summarize that
   fact here and retain the upstream notice requirements in distributed
   materials when applicable.

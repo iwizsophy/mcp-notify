@@ -65,7 +65,7 @@ go test ./...
 
 ### VOICEVOXも同じMCPで使う
 
-VOICEVOX Engineを別途起動してから、同じサーバ登録にTTSオプションを追加します。既定のEngine URLは `http://127.0.0.1:50021` です。
+[VOICEVOX公式サイト](https://voicevox.hiroshiba.jp/)からVOICEVOXをインストールしてEngineを起動した後、同じサーバ登録にTTSオプションを追加します。既定のEngine URLは `http://127.0.0.1:50021` です。デスクトップ版・Docker・単体Engineの詳しい導入方法は[セットアップガイド](docs/setup.ja.md#voicevox-engineの導入)を参照してください。
 
 ```json
 {
@@ -248,7 +248,11 @@ VOICEVOX連携時の読み上げ例:
 
 ## VOICEVOXの利用条件
 
-このプロジェクトはVOICEVOX Engineや音声ライブラリを同梱・再配布せず、設定されたHTTP APIとのみ通信します。生成音声を利用・公開するときは、[VOICEVOX利用規約](https://voicevox.hiroshiba.jp/term/)と、使用するキャラクターごとの規約を確認してください。クレジット表記は通常 `VOICEVOX:キャラクター名` の形式です。
+VOICEVOX EngineはLGPL v3と、ソースコード公開が不要な別ライセンスのデュアルライセンスです。詳細は[VOICEVOX Engineの公式ライセンス](https://github.com/VOICEVOX/voicevox_engine/blob/master/LICENSE)を確認してください。
+
+このプロジェクトはVOICEVOX Engine、音声ライブラリ、キャラクター素材を同梱・リンク・再配布せず、利用者が別途起動したEngineのHTTP APIとのみ通信します。そのため、VOICEVOX Engineは `mcp-notify` のGo依存関係や配布物には含まれません。将来これらを同梱する場合は、配布形態とライセンス対応を改めて確認する必要があります。
+
+生成音声を利用・公開するときは、[VOICEVOXソフトウェア利用規約](https://voicevox.hiroshiba.jp/term/)と、[公式サイトに掲載された使用キャラクターごとの規約](https://voicevox.hiroshiba.jp/)を確認してください。クレジット表記は通常 `VOICEVOX:キャラクター名` の形式です。音声案内のようにスピーカーから流す場合の表示方法は[VOICEVOX公式Q&A](https://voicevox.hiroshiba.jp/qa/)も参照してください。
 
 ## ドキュメント
 
