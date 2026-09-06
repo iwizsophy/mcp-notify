@@ -4,7 +4,9 @@
       "command": "C:\\path\\to\\mcp-notify\\bin\\mcp-notify.exe",
       "args": [
         "--sound", "complete.wav",
+        "--wait=false",
         "--tts-provider", "voicevox",
+        "--voicevox-url", "http://127.0.0.1:50021",
         "--voicevox-speaker", "3"
       ],
       "cwd": "C:\\path\\to\\mcp-notify"

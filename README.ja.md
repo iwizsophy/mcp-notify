@@ -119,24 +119,15 @@ hook から単発で鳴らしたい場合:
 .\bin\mcp-notify.exe --play-once complete.wav --wait=false
 ```
 
-この設定は MCP サーバを登録するだけです。実際に通知音を鳴らすには、MCP クライアント側でこのサーバ登録を呼び出すルールや Hook を別途設定する必要があります。クライアントによっては登録名経由でツールを呼び出し、公開されるツール名は通常 `play_mcp_notification_sound` ですが、`--tool-prefix` を指定した場合は変わります。
+この設定は MCP サーバを登録するだけです。自動的に発話させるには、クライアント側の指示ファイル、カスタム指示、ルール、Hookなどへ、いつ `speak_text` を呼ぶかも設定します。発話内容は固定する必要はなく、そのターンの実際の結果から短い文章を生成して渡せます。
 
-Codex では、たとえば `AGENTS.md` に次のようなルールを書けます。`next-step-call` と `complete-call` は例なので、自分の環境で登録した MCP 名に置き換えてください。
-
-```md
-## Task Transition Rules
-- When a task (issue) is completed, and the next task is started within the same session, you MUST call the `<your-next-step-mcp-registration>` MCP.
-- This applies even if the next task is implicitly continued without explicit user instruction.
-
-## MCP Execution (Critical)
-- At the end of EVERY work turn, you MUST call the `<your-complete-mcp-registration>` MCP.
-```
+Codexの `AGENTS.md` だけでなく、Claude Codeの `CLAUDE.md` や、各クライアントのMCP設定形式・指示機能を使えます。必要な設定値、クライアント別の登録例、クライアント非依存の発話ルール例は[MCPクライアント設定ガイド](docs/client-configuration.ja.md)を参照してください。
 
 ## 同じバイナリを複数登録する場合
 
 同じ実行ファイルを MCP クライアントに複数登録し、起動引数で役割を分けることができます。
 
-例:
+次の例はCodexのTOML形式です。他のクライアントでは、それぞれのサーバマップへ同等の登録を2件追加してください。
 
 ```toml
 [mcp_servers.next-step-call]
@@ -256,6 +247,8 @@ VOICEVOX EngineはLGPL v3と、ソースコード公開が不要な別ライセ�
 
 ## ドキュメント
 
+- クライアント別MCP設定と発話ルール: [docs/client-configuration.ja.md](docs/client-configuration.ja.md)
+- 英語版クライアント設定ガイド: [docs/client-configuration.md](docs/client-configuration.md)
 - 詳細なセットアップと設定: [docs/setup.ja.md](docs/setup.ja.md)
 - 英語版セットアップガイド: [docs/setup.md](docs/setup.md)
 - 開発者向けメモ: [docs/development.md](docs/development.md)

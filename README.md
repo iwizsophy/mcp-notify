@@ -119,24 +119,15 @@ If you want to use it from a short-lived hook without keeping an MCP server aliv
 .\bin\mcp-notify.exe --play-once complete.wav --wait=false
 ```
 
-This only registers the MCP server. To actually hear notifications, your MCP client also needs a rule or hook that invokes this server registration at the right moments. Depending on the client, that may mean calling the server via its registration name and then invoking the exposed tool, whose name is normally `play_mcp_notification_sound` but changes if you use `--tool-prefix`.
+This only registers the MCP server. To make speech automatic, also tell the client when to call `speak_text` through its instruction file, custom instructions, rules, or hooks. Speech does not need to be canned: the client can generate a short sentence from the actual result of each turn.
 
-With Codex, for example, you can express that behavior in `AGENTS.md`. Replace `next-step-call` and `complete-call` below with the MCP registration names you actually use in your environment.
-
-```md
-## Task Transition Rules
-- When a task (issue) is completed, and the next task is started within the same session, you MUST call the `<your-next-step-mcp-registration>` MCP.
-- This applies even if the next task is implicitly continued without explicit user instruction.
-
-## MCP Execution (Critical)
-- At the end of EVERY work turn, you MUST call the `<your-complete-mcp-registration>` MCP.
-```
+You can use Codex `AGENTS.md`, Claude Code `CLAUDE.md`, or the equivalent MCP and instruction features in another client. See the [MCP client configuration guide](docs/client-configuration.md) for required values, client-specific registration examples, and a client-neutral invocation policy.
 
 ## Multiple Server Registrations
 
 You can register the same binary multiple times in your MCP client and split behavior by startup arguments.
 
-Example:
+The following example uses the Codex TOML format. In another client, add two equivalent entries to its server map.
 
 ```toml
 [mcp_servers.next-step-call]
@@ -256,6 +247,8 @@ Before using or publishing generated audio, review the [VOICEVOX software terms]
 
 ## Docs
 
+- MCP client setup and invocation policy: [docs/client-configuration.md](docs/client-configuration.md)
+- Japanese client configuration guide: [docs/client-configuration.ja.md](docs/client-configuration.ja.md)
 - Detailed setup and configuration: [docs/setup.md](docs/setup.md)
 - Japanese setup guide: [docs/setup.ja.md](docs/setup.ja.md)
 - Development notes: [docs/development.md](docs/development.md)

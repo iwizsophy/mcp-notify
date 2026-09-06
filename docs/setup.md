@@ -220,18 +220,9 @@ This registration exposes both `play_mcp_notification_sound` and `speak_text`. V
 }
 ```
 
-These examples register the MCP server only. To actually hear notifications, your MCP client also needs a rule or hook that invokes this server registration when the relevant state change happens. Depending on the client, that may mean calling the server via its registration name and then invoking the exposed tool, whose name is normally `play_mcp_notification_sound` but changes if you use `--tool-prefix`.
+These examples register the MCP server only. To make speech automatic, also tell the client when to call `speak_text` through its instruction file, custom instructions, rules, or hooks.
 
-With Codex, for example, you can express that behavior in `AGENTS.md`. Replace `next-step-call` and `complete-call` below with the MCP registration names you actually use in your environment.
-
-```md
-## Task Transition Rules
-- When a task (issue) is completed, and the next task is started within the same session, you MUST call the `<your-next-step-mcp-registration>` MCP.
-- This applies even if the next task is implicitly continued without explicit user instruction.
-
-## MCP Execution (Critical)
-- At the end of EVERY work turn, you MUST call the `<your-complete-mcp-registration>` MCP.
-```
+See the [client configuration guide](client-configuration.md) for the values required by Codex, Claude Desktop and Claude Code, VS Code, and other stdio-capable clients, plus a client-neutral policy that generates speech from the actual work result.
 
 ## Argument Formatting Notes
 

@@ -11,7 +11,10 @@ This document is for repository contributors and maintainers.
 │     └─ main.go
 ├─ docs/
 │  ├─ assets/
+│  ├─ client-configuration.ja.md
+│  ├─ client-configuration.md
 │  ├─ development.md
+│  ├─ setup.ja.md
 │  ├─ setup.md
 │  └─ verification.md
 ├─ internal/

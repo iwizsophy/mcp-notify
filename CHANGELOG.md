@@ -19,6 +19,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Notification files and synthesized speech now share one normalized 48 kHz stereo audio output context
 - Updated `actions/checkout` from v6 to v7 and `softprops/action-gh-release` from v2 to v3
 - Documented VOICEVOX installation, external-runtime licensing boundaries, generated-audio terms, and bundled asset provenance
+- Added client-neutral MCP setup and dynamic speech policy guidance, with concrete Codex, Claude, and VS Code examples
 - Corrected the copyright holder in the canonical MIT license to match the repository identity and reference translation
 
 ## [1.1.0] - 2026-04-04
