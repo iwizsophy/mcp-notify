@@ -72,6 +72,38 @@ func TestParseConfigAcceptsServerNameAndToolPrefix(t *testing.T) {
 	}
 }
 
+func TestParseConfigAcceptsVOICEVOXSettings(t *testing.T) {
+	t.Parallel()
+
+	cfg, err := parseConfig([]string{
+		"--tts-provider", "VOICEVOX",
+		"--voicevox-url", "http://localhost:50021",
+		"--voicevox-speaker", "2",
+	})
+	if err != nil {
+		t.Fatalf("expected success, got %v", err)
+	}
+	if cfg.ttsProvider != "voicevox" || cfg.voicevoxURL != "http://localhost:50021" || cfg.voicevoxSpeaker != 2 {
+		t.Fatalf("unexpected VOICEVOX configuration: %+v", cfg)
+	}
+}
+
+func TestParseConfigRejectsUnsupportedTTSProvider(t *testing.T) {
+	t.Parallel()
+
+	if _, err := parseConfig([]string{"--tts-provider", "unknown"}); err == nil {
+		t.Fatalf("expected unsupported provider error")
+	}
+}
+
+func TestParseConfigRejectsNegativeVOICEVOXSpeaker(t *testing.T) {
+	t.Parallel()
+
+	if _, err := parseConfig([]string{"--voicevox-speaker", "-1"}); err == nil {
+		t.Fatalf("expected negative speaker error")
+	}
+}
+
 func TestParseConfigRejectsPlayOnceAndSoundTogether(t *testing.T) {
 	t.Parallel()
 

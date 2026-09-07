@@ -4,9 +4,9 @@
 
 # mcp-notify
 
-`mcp-notify` は、ローカル端末で通知音を再生する Go 製の stdio ベース MCP サーバです。
+`mcp-notify` は、ローカル端末で通知音や合成音声を再生する Go 製の stdio ベース MCP サーバです。
 
-MCP ツール `play_mcp_notification_sound` で、サーバ起動時に設定した音声ファイルか、呼び出し時に指定した音声ファイルを再生できます。
+MCP ツール `play_mcp_notification_sound` で音声ファイルを再生できます。外部の VOICEVOX Engine を設定すると、同じ MCP サーバに `speak_text` が追加されます。
 
 English version: [README.md](README.md)
 
@@ -26,7 +26,8 @@ MCP を用いた開発フローでは、ツールの実行結果やユーザー�
 
 ## できること
 
-- MCP ツール `play_mcp_notification_sound` を 1 つ提供します
+- 常に MCP ツール `play_mcp_notification_sound` を提供します
+- VOICEVOX連携を有効にすると、同じMCPサーバに `speak_text` も提供します
 - ローカルの `sounds/` ディレクトリ配下の音声ファイルを再生します
 - `.wav` と `.mp3` に対応しています
 - 主対象は Windows で、macOS と Linux でも動作します
@@ -62,6 +63,28 @@ go test ./...
 }
 ```
 
+### VOICEVOXも同じMCPで使う
+
+[VOICEVOX公式サイト](https://voicevox.hiroshiba.jp/)からVOICEVOXをインストールしてEngineを起動した後、同じサーバ登録にTTSオプションを追加します。既定のEngine URLは `http://127.0.0.1:50021` です。デスクトップ版・Docker・単体Engineの詳しい導入方法は[セットアップガイド](docs/setup.ja.md#voicevox-engineの導入)を参照してください。
+
+```json
+{
+  "mcpServers": {
+    "notify": {
+      "command": "C:\\path\\to\\mcp-notify\\bin\\mcp-notify.exe",
+      "args": [
+        "--sound", "complete.wav",
+        "--tts-provider", "voicevox",
+        "--voicevox-speaker", "3"
+      ],
+      "cwd": "C:\\path\\to\\mcp-notify"
+    }
+  }
+}
+```
+
+この1つの登録から `play_mcp_notification_sound` と `speak_text` の両方が見えます。VOICEVOX Engineは本プロジェクトに同梱されません。
+
 非同期再生にしたい場合:
 
 ```json
@@ -96,24 +119,15 @@ hook から単発で鳴らしたい場合:
 .\bin\mcp-notify.exe --play-once complete.wav --wait=false
 ```
 
-この設定は MCP サーバを登録するだけです。実際に通知音を鳴らすには、MCP クライアント側でこのサーバ登録を呼び出すルールや Hook を別途設定する必要があります。クライアントによっては登録名経由でツールを呼び出し、公開されるツール名は通常 `play_mcp_notification_sound` ですが、`--tool-prefix` を指定した場合は変わります。
+この設定は MCP サーバを登録するだけです。自動的に発話させるには、クライアント側の指示ファイル、カスタム指示、ルール、Hookなどへ、いつ `speak_text` を呼ぶかも設定します。発話内容は固定する必要はなく、そのターンの実際の結果から短い文章を生成して渡せます。
 
-Codex では、たとえば `AGENTS.md` に次のようなルールを書けます。`next-step-call` と `complete-call` は例なので、自分の環境で登録した MCP 名に置き換えてください。
-
-```md
-## Task Transition Rules
-- When a task (issue) is completed, and the next task is started within the same session, you MUST call the `<your-next-step-mcp-registration>` MCP.
-- This applies even if the next task is implicitly continued without explicit user instruction.
-
-## MCP Execution (Critical)
-- At the end of EVERY work turn, you MUST call the `<your-complete-mcp-registration>` MCP.
-```
+Codexの `AGENTS.md` だけでなく、Claude Codeの `CLAUDE.md` や、各クライアントのMCP設定形式・指示機能を使えます。必要な設定値、クライアント別の登録例、クライアント非依存の発話ルール例は[MCPクライアント設定ガイド](docs/client-configuration.ja.md)を参照してください。
 
 ## 同じバイナリを複数登録する場合
 
 同じ実行ファイルを MCP クライアントに複数登録し、起動引数で役割を分けることができます。
 
-例:
+次の例はCodexのTOML形式です。他のクライアントでは、それぞれのサーバマップへ同等の登録を2件追加してください。
 
 ```toml
 [mcp_servers.next-step-call]
@@ -163,6 +177,19 @@ complete_play_mcp_notification_sound
 }
 ```
 
+VOICEVOX連携時の読み上げ例:
+
+```json
+{
+  "text": "処理が完了しました",
+  "speaker": 3,
+  "wait": false,
+  "speedScale": 1.1
+}
+```
+
+`speaker` はVOICEVOXの話者・スタイルIDです。利用中のEngineの `/speakers` で確認してください。`speaker`、`wait`、各音声調整値を省略すると起動時またはVOICEVOX側の既定値を使います。
+
 成功レスポンス例:
 
 ```json
@@ -179,7 +206,10 @@ complete_play_mcp_notification_sound
 - `--wait`: 省略可。デフォルトは `true`
 - `--play-once`: 省略可。`sounds/` 配下の相対ファイルを 1 回再生して終了します
 - `--server-name`: 省略可。デフォルトは `mcp-notify`。`initialize.serverInfo.name` を上書きします
-- `--tool-prefix`: 省略可。`play_mcp_notification_sound` の前にそのまま付与する文字列です
+- `--tool-prefix`: 省略可。公開するすべてのツール名の前にそのまま付与する文字列です
+- `--tts-provider`: 省略可。`voicevox` を指定すると `speak_text` を追加します
+- `--voicevox-url`: 省略可。VOICEVOX EngineのベースURL。デフォルトは `http://127.0.0.1:50021`
+- `--voicevox-speaker`: 省略可。既定の話者・スタイルID。デフォルトは `3`
 
 ## 重要な挙動
 
@@ -190,6 +220,10 @@ complete_play_mcp_notification_sound
 - `--wait=true` は再生完了まで待機します
 - `--wait=false` は別プロセスで再生を続けつつ、ツール呼び出しを先に復帰させます
 - `--sound` を指定していて起動時設定が不正な場合、`initialize` は MCP エラーを返します
+- `speak_text` は文字列の前後空白を除いて1～1000文字を受け付けます
+- `speak_text` の `wait=false` はVOICEVOXでの合成完了後に応答し、再生だけをサーバ内で非同期に続けます
+- Engineへの接続や合成に失敗した場合、`speak_text` は説明付きのツールエラーを返します。通知音ツールには影響しません
+- `--tool-prefix` は両方のツール名に適用されます
 
 ## プラットフォーム補足
 
@@ -201,9 +235,20 @@ complete_play_mcp_notification_sound
 
 - 起動時 `--sound` と呼び出し時 `soundPath` の両方を省略すると、ツールはエラーを返します
 - 設定済みの音声ファイルを別のサンプルレートやチャンネル数のものに差し替えた場合はサーバ再起動が必要です
+- `speak_text` を使う間はVOICEVOX Engineを別プロセスで稼働させる必要があります
+
+## VOICEVOXの利用条件
+
+VOICEVOX EngineはLGPL v3と、ソースコード公開が不要な別ライセンスのデュアルライセンスです。詳細は[VOICEVOX Engineの公式ライセンス](https://github.com/VOICEVOX/voicevox_engine/blob/master/LICENSE)を確認してください。
+
+このプロジェクトはVOICEVOX Engine、音声ライブラリ、キャラクター素材を同梱・リンク・再配布せず、利用者が別途起動したEngineのHTTP APIとのみ通信します。そのため、VOICEVOX Engineは `mcp-notify` のGo依存関係や配布物には含まれません。将来これらを同梱する場合は、配布形態とライセンス対応を改めて確認する必要があります。
+
+生成音声を利用・公開するときは、[VOICEVOXソフトウェア利用規約](https://voicevox.hiroshiba.jp/term/)と、[公式サイトに掲載された使用キャラクターごとの規約](https://voicevox.hiroshiba.jp/)を確認してください。クレジット表記は通常 `VOICEVOX:キャラクター名` の形式です。音声案内のようにスピーカーから流す場合の表示方法は[VOICEVOX公式Q&A](https://voicevox.hiroshiba.jp/qa/)も参照してください。
 
 ## ドキュメント
 
+- クライアント別MCP設定と発話ルール: [docs/client-configuration.ja.md](docs/client-configuration.ja.md)
+- 英語版クライアント設定ガイド: [docs/client-configuration.md](docs/client-configuration.md)
 - 詳細なセットアップと設定: [docs/setup.ja.md](docs/setup.ja.md)
 - 英語版セットアップガイド: [docs/setup.md](docs/setup.md)
 - 開発者向けメモ: [docs/development.md](docs/development.md)

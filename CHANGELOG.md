@@ -6,11 +6,27 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-09-07
+
+### Added
+
+- Optional `speak_text` MCP tool backed by a separately running VOICEVOX Engine
+- Runtime controls for VOICEVOX speaker/style, speed, pitch, intonation, volume, and synchronous or asynchronous playback
+
 ### Changed
 
 - CI `push` triggers now explicitly target all branches, fixing the previous
   misconfiguration where `tags-ignore` alone prevented branch pushes from
   creating runs
+- Notification files and synthesized speech now share one normalized 48 kHz stereo audio output context
+- Updated `actions/checkout` from v6 to v7 and `softprops/action-gh-release` from v2 to v3
+- Documented VOICEVOX installation, external-runtime licensing boundaries, generated-audio terms, and bundled asset provenance
+- Added client-neutral MCP setup and dynamic speech policy guidance, with concrete Codex, Claude, and VS Code examples
+- Corrected the copyright holder in the canonical MIT license to match the repository identity and reference translation
+
+### Fixed
+
+- Redacted VOICEVOX request query parameters from transport errors so speech text is not returned to MCP clients
 
 ## [1.1.0] - 2026-04-04
 

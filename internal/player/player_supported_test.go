@@ -3,6 +3,7 @@
 package player
 
 import (
+	"encoding/binary"
 	"path/filepath"
 	"testing"
 
@@ -28,6 +29,55 @@ func TestDecodeAudioFileWAV(t *testing.T) {
 	}
 	if clip.config.format != oto.FormatSignedInt16LE {
 		t.Fatalf("expected signed 16-bit PCM, got %v", clip.config.format)
+	}
+}
+
+func TestNormalizeDecodedAudioResamplesMonoToStereo(t *testing.T) {
+	t.Parallel()
+
+	source := make([]byte, 4)
+	binary.LittleEndian.PutUint16(source[0:], uint16(int16(1000)))
+	binary.LittleEndian.PutUint16(source[2:], uint16(int16(2000)))
+
+	clip, err := normalizeDecodedAudio(&decodedAudio{
+		data: source,
+		config: audioConfig{
+			sampleRate:   24000,
+			channelCount: 1,
+			format:       oto.FormatSignedInt16LE,
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected success, got %v", err)
+	}
+	if clip.config != playbackConfig {
+		t.Fatalf("expected playback config, got %+v", clip.config)
+	}
+	if len(clip.data) != 16 {
+		t.Fatalf("expected four stereo frames, got %d bytes", len(clip.data))
+	}
+	for frame := 0; frame < 4; frame++ {
+		left := readPCM16Sample(clip.data, frame, 0, 2)
+		right := readPCM16Sample(clip.data, frame, 1, 2)
+		if left != right {
+			t.Fatalf("expected duplicated mono sample at frame %d, got %d and %d", frame, left, right)
+		}
+	}
+}
+
+func TestNormalizeDecodedAudioRejectsUnsafeSampleRate(t *testing.T) {
+	t.Parallel()
+
+	_, err := normalizeDecodedAudio(&decodedAudio{
+		data: []byte{0, 0},
+		config: audioConfig{
+			sampleRate:   1,
+			channelCount: 1,
+			format:       oto.FormatSignedInt16LE,
+		},
+	})
+	if err == nil {
+		t.Fatalf("expected unsafe sample rate to be rejected")
 	}
 }
 

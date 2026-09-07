@@ -4,9 +4,9 @@
 
 # mcp-notify
 
-`mcp-notify` is a stdio-based MCP server written in Go that plays a local notification sound on the current machine.
+`mcp-notify` is a stdio-based MCP server written in Go that plays local notification sounds and synthesized speech.
 
-Call the MCP tool `play_mcp_notification_sound` to play either the file configured at server startup or a file selected at call time.
+Call `play_mcp_notification_sound` to play an audio file. Configure an external VOICEVOX Engine to add `speak_text` to the same MCP server.
 
 Japanese documentation is available in [README.ja.md](README.ja.md).
 
@@ -26,7 +26,8 @@ As a side effect, your workspace may become slightly noisier. Whether that happe
 
 ## What It Does
 
-- Provides one MCP tool: `play_mcp_notification_sound`
+- Always provides `play_mcp_notification_sound`
+- Adds `speak_text` to the same MCP server when VOICEVOX integration is enabled
 - Plays a sound file under the local `sounds/` directory
 - Supports `.wav` and `.mp3`
 - Works primarily on Windows, with macOS and Linux support
@@ -62,6 +63,28 @@ Example `mcpServers` entry:
 }
 ```
 
+### Use VOICEVOX through the same MCP server
+
+Install VOICEVOX from the [official website](https://voicevox.hiroshiba.jp/), start its Engine, then add the TTS options to the same server registration. The default Engine URL is `http://127.0.0.1:50021`. See the [setup guide](docs/setup.md#installing-voicevox-engine) for desktop, Docker, and standalone Engine options.
+
+```json
+{
+  "mcpServers": {
+    "notify": {
+      "command": "C:\\path\\to\\mcp-notify\\bin\\mcp-notify.exe",
+      "args": [
+        "--sound", "complete.wav",
+        "--tts-provider", "voicevox",
+        "--voicevox-speaker", "3"
+      ],
+      "cwd": "C:\\path\\to\\mcp-notify"
+    }
+  }
+}
+```
+
+This single registration exposes both `play_mcp_notification_sound` and `speak_text`. VOICEVOX Engine is not bundled with this project.
+
 If you want asynchronous playback:
 
 ```json
@@ -96,24 +119,15 @@ If you want to use it from a short-lived hook without keeping an MCP server aliv
 .\bin\mcp-notify.exe --play-once complete.wav --wait=false
 ```
 
-This only registers the MCP server. To actually hear notifications, your MCP client also needs a rule or hook that invokes this server registration at the right moments. Depending on the client, that may mean calling the server via its registration name and then invoking the exposed tool, whose name is normally `play_mcp_notification_sound` but changes if you use `--tool-prefix`.
+This only registers the MCP server. To make speech automatic, also tell the client when to call `speak_text` through its instruction file, custom instructions, rules, or hooks. Speech does not need to be canned: the client can generate a short sentence from the actual result of each turn.
 
-With Codex, for example, you can express that behavior in `AGENTS.md`. Replace `next-step-call` and `complete-call` below with the MCP registration names you actually use in your environment.
-
-```md
-## Task Transition Rules
-- When a task (issue) is completed, and the next task is started within the same session, you MUST call the `<your-next-step-mcp-registration>` MCP.
-- This applies even if the next task is implicitly continued without explicit user instruction.
-
-## MCP Execution (Critical)
-- At the end of EVERY work turn, you MUST call the `<your-complete-mcp-registration>` MCP.
-```
+You can use Codex `AGENTS.md`, Claude Code `CLAUDE.md`, or the equivalent MCP and instruction features in another client. See the [MCP client configuration guide](docs/client-configuration.md) for required values, client-specific registration examples, and a client-neutral invocation policy.
 
 ## Multiple Server Registrations
 
 You can register the same binary multiple times in your MCP client and split behavior by startup arguments.
 
-Example:
+The following example uses the Codex TOML format. In another client, add two equivalent entries to its server map.
 
 ```toml
 [mcp_servers.next-step-call]
@@ -173,13 +187,29 @@ Successful response example:
 }
 ```
 
+Speech example when VOICEVOX integration is enabled:
+
+```json
+{
+  "text": "The task is complete.",
+  "speaker": 3,
+  "wait": false,
+  "speedScale": 1.1
+}
+```
+
+`speaker` is a VOICEVOX speaker/style ID. Check `/speakers` on the Engine you run. Omitting `speaker`, `wait`, or the speech controls uses the startup or VOICEVOX query defaults.
+
 ## Startup Options
 
 - `--sound`: optional relative file name or subpath under `sounds/`
 - `--wait`: optional, default `true`
 - `--play-once`: optional relative file name or subpath under `sounds/`; plays once and exits instead of starting the MCP server
 - `--server-name`: optional, default `mcp-notify`; overrides `initialize.serverInfo.name`
-- `--tool-prefix`: optional literal prefix added to `play_mcp_notification_sound`
+- `--tool-prefix`: optional literal prefix added to every exposed tool name
+- `--tts-provider`: optional; set to `voicevox` to expose `speak_text`
+- `--voicevox-url`: optional VOICEVOX Engine base URL; default `http://127.0.0.1:50021`
+- `--voicevox-speaker`: optional default speaker/style ID; default `3`
 
 ## Important Behavior
 
@@ -190,6 +220,10 @@ Successful response example:
 - `--wait=true` waits for playback to finish
 - `--wait=false` returns immediately and keeps playback running in a detached helper process
 - Invalid startup configuration causes `initialize` to return an MCP error when `--sound` is set
+- `speak_text` accepts 1–1000 characters after trimming surrounding whitespace
+- With `speak_text`, `wait=false` returns after synthesis completes and continues only playback asynchronously inside the server
+- Engine connection or synthesis failures are reported as descriptive `speak_text` tool errors and do not disable the sound tool
+- `--tool-prefix` applies to both exposed tool names
 
 ## Platform Notes
 
@@ -201,9 +235,20 @@ Successful response example:
 
 - If you omit both startup `--sound` and tool-call `soundPath`, the tool returns an error
 - Replacing the configured sound file with a different sample rate or channel count requires restarting the server
+- VOICEVOX Engine must run as a separate process while using `speak_text`
+
+## VOICEVOX Terms
+
+VOICEVOX Engine is dual-licensed under LGPL v3 and a separate license that does not require source disclosure. See the [official VOICEVOX Engine license](https://github.com/VOICEVOX/voicevox_engine/blob/master/LICENSE) for details.
+
+This project does not bundle, link, or redistribute VOICEVOX Engine, voice libraries, or character assets. It only calls the HTTP API of an Engine started separately by the user, so VOICEVOX Engine is not part of the `mcp-notify` Go dependency graph or release package. Revisit the distribution model and license obligations before bundling any of those components in the future.
+
+Before using or publishing generated audio, review the [VOICEVOX software terms](https://voicevox.hiroshiba.jp/term/) and the terms for each character listed on the [official website](https://voicevox.hiroshiba.jp/). Credit is normally written in the form `VOICEVOX:Character Name`. See the [official Q&A](https://voicevox.hiroshiba.jp/qa/) for placement guidance when audio is played as an announcement or from a device.
 
 ## Docs
 
+- MCP client setup and invocation policy: [docs/client-configuration.md](docs/client-configuration.md)
+- Japanese client configuration guide: [docs/client-configuration.ja.md](docs/client-configuration.ja.md)
 - Detailed setup and configuration: [docs/setup.md](docs/setup.md)
 - Japanese setup guide: [docs/setup.ja.md](docs/setup.ja.md)
 - Development notes: [docs/development.md](docs/development.md)

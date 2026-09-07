@@ -2,13 +2,13 @@
 
 ## Scope
 
-This repository provides a small MCP server that plays a local notification sound configured at startup.
+This repository provides a small MCP server that plays local notification sounds and speech synthesized by an optional VOICEVOX Engine.
 
 Keep changes aligned with that scope:
 
-- one-tool MCP server
-- startup-time sound selection
-- local playback only
+- one stdio MCP server exposing the sound tool and, only when configured, the speech tool
+- startup-time selection of default sounds and TTS providers
+- local playback with synthesis limited to an explicitly configured external Engine
 - predictable behavior across supported platforms
 
 ## Before You Start
@@ -48,15 +48,20 @@ Remove-Item Env:GOOS
 - Preserve the `sounds/` directory boundary for playback targets
 - Prefer argument-separated command execution over shell string construction
 - Keep platform-specific behavior isolated in `internal/player/`
+- Keep provider-specific TTS communication in a dedicated package, separate from the MCP contract and playback
+- Review distribution terms and license requirements before bundling an external runtime in the binary or release
+- When adding audio, images, or other media, record its source, distributable license or terms, and required credit in `THIRD-PARTY-NOTICES.md`
 
 ## Docs Expectations
 
 When behavior changes, update the relevant docs in the same change:
 
-- `README.md` for user-facing overview and quick start
-- `docs/setup.md` for configuration and troubleshooting
+- `README.md` / `README.ja.md` for user-facing overview and quick start
+- `docs/setup.md` / `docs/setup.ja.md` for configuration and troubleshooting
 - `docs/development.md` for contributor-facing architecture notes
 - `docs/verification.md` when manual verification steps or results change
+- `CHANGELOG.md` for user-visible changes
+- `THIRD-PARTY-NOTICES.md` for dependency, external interoperability, and bundled asset licensing or provenance
 
 ## Testing Expectations
 
@@ -64,6 +69,7 @@ Before opening a PR, run:
 
 ```powershell
 go test ./...
+go vet ./...
 ```
 
 If you changed startup validation, playback dispatch, or platform behavior, also run the relevant manual checks documented in `docs/verification.md`.
@@ -78,3 +84,4 @@ A good pull request should include:
 - platform-specific impact, if any
 - doc updates when behavior changed
 - test or verification notes
+- license review for dependencies, external runtimes, and distributed assets
