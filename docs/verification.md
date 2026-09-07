@@ -70,7 +70,7 @@
 - 公式SHA-256を照合したGo `1.26.8` ARM64版を一時ディレクトリへ展開し、管理者権限や恒久インストールなしで使用
 - macOS更新後のXcode不整合によりCGO有効時は `clang` 検出が失敗したが、このプロジェクトが対応する `CGO_ENABLED=0` では `go test ./...` が全パッケージで成功
 - `CGO_ENABLED=0` でmacOS ARM64バイナリのネイティブビルドに成功
-- macOS標準の `afplay` と、ビルドした `mcp-notify --play-once complete.wav --wait=true` が内蔵スピーカーを既定出力として終了コード0で完了
+- macOS標準の `afplay` と、ビルドした `mcp-notify --play-once complete.wav --wait=true` が内蔵スピーカーを既定出力として終了コード0で完了し、利用者が実際の発音を確認
 - `--wait=false` の非同期再生起動が終了コード0、親プロセス実測0.38秒で完了
 
 ## VOICEVOX実機確認（2026-09-06）
