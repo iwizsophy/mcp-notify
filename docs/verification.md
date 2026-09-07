@@ -52,12 +52,15 @@
 - WindowsおよびUbuntu WSLで `go test -race ./...` 成功
 - WindowsおよびUbuntu WSLでCI相当のカバレッジ試験に成功。総ステートメントカバレッジは62.8%、`internal/voicevox` は89.8%
 - Ubuntu WSL（Go 1.26.1、ALSA開発ライブラリあり）で `go test ./...`、`go vet ./...`、Linuxバイナリのビルドに成功
+- Ubuntu WSL2 / WSLgで `libasound2-plugins`、`alsa-utils`、`pulseaudio-utils` を導入し、PulseAudioの `RDPSink` とALSAの `pulse` PCMを確認
+- `~/.asoundrc` でALSAの既定PCMを `pulse` に設定し、`speaker-test -D pulse` からWindowsホストへの実再生に成功
+- 同じ環境で現在のソースからLinuxバイナリをビルドし、`--play-once complete.wav --wait=true` がALSA警告なし、終了コード0で実再生を完了
 - WindowsからmacOS amd64向けのクロスビルドに成功
 
 ## 未実施・環境依存の確認
 
 - macOS実機での音声再生
-- 音声デバイスを備えたLinux実機での音声再生。Ubuntu WSLでは既定ALSAデバイスがないため、ビルドとテストまで確認
+- Linux物理機のサウンドカードとALSAドライバーに固有の経路。Linuxアプリケーションからホストスピーカーまでの実再生はUbuntu WSL2 / WSLgで確認済み
 - Claude Desktop／Claude Code／VS Codeからの実クライアントE2E。Claude CLIは未導入で、VS Code CLIからは非対話のツール実行結果を取得できないため未実施
 - GitHub Actions上の最終CI。ローカルではWindowsとUbuntu WSLの両方で同等のテストを実施済み
 

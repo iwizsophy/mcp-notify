@@ -358,6 +358,36 @@ If you do not want a startup default, omit `--sound` and pass `soundPath` in eac
 
 Check that ALSA development/runtime support and a usable audio output device are available in the target environment.
 
+#### WSL2 / WSLg
+
+WSLg forwards audio to the Windows host through a PulseAudio socket, while the `oto` Linux backend uses ALSA. On Ubuntu, install the ALSA-to-PulseAudio plugin and diagnostic tools:
+
+```bash
+sudo apt update
+sudo apt install libasound2-dev libasound2-plugins alsa-utils pulseaudio-utils
+```
+
+Confirm that `pactl info` reports `Default Sink: RDPSink` and that `aplay -L` includes `pulse`. If the ALSA `default` device still refers to a nonexistent physical card, configure `~/.asoundrc` as follows:
+
+```text
+pcm.!default {
+    type pulse
+}
+
+ctl.!default {
+    type pulse
+}
+```
+
+Verify both the WSLg route and actual `mcp-notify` playback:
+
+```bash
+speaker-test -D pulse -t sine -f 440 -c 2 -l 1
+./mcp-notify --play-once complete.wav --wait=true
+```
+
+If `PULSE_SERVER` is unset or `/mnt/wslg/PulseServer` does not exist, confirm that the command is running in a WSL2 environment with WSLg enabled.
+
 ### The tool returns immediately
 
 Set `--wait=true` if you want the MCP tool call to block until playback finishes.

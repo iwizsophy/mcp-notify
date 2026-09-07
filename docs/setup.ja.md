@@ -358,6 +358,36 @@ Codex、Claude Desktop／Claude Code、VS Code、その他のstdio対応クラ�
 
 ターゲット環境で ALSA の依存関係と利用可能な音声出力デバイスが揃っているか確認してください。
 
+#### WSL2 / WSLg
+
+WSLg は PulseAudio のソケットを通して Windows ホストへ音声を転送しますが、`oto` の Linux バックエンドは ALSA を使用します。Ubuntu では ALSA から PulseAudio へ接続するプラグインと診断ツールを導入してください。
+
+```bash
+sudo apt update
+sudo apt install libasound2-dev libasound2-plugins alsa-utils pulseaudio-utils
+```
+
+`pactl info` で `Default Sink: RDPSink` が表示され、`aplay -L` に `pulse` が含まれることを確認します。ALSA の `default` が存在しない物理カードを参照する場合は、`~/.asoundrc` を次のように設定します。
+
+```text
+pcm.!default {
+    type pulse
+}
+
+ctl.!default {
+    type pulse
+}
+```
+
+次の順で、WSLg の経路と `mcp-notify` の実再生を確認できます。
+
+```bash
+speaker-test -D pulse -t sine -f 440 -c 2 -l 1
+./mcp-notify --play-once complete.wav --wait=true
+```
+
+`PULSE_SERVER` が未設定、または `/mnt/wslg/PulseServer` が存在しない場合は、WSLgが有効なWSL2環境から実行しているか確認してください。
+
 ### ツールがすぐ戻る
 
 再生完了まで待ちたい場合は `--wait=true` にしてください。
