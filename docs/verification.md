@@ -59,10 +59,19 @@
 
 ## 未実施・環境依存の確認
 
-- macOS実機での音声再生
 - Linux物理機のサウンドカードとALSAドライバーに固有の経路。Linuxアプリケーションからホストスピーカーまでの実再生はUbuntu WSL2 / WSLgで確認済み
 - Claude Desktop／Claude Code／VS Codeからの実クライアントE2E。Claude CLIは未導入で、VS Code CLIからは非対話のツール実行結果を取得できないため未実施
 - GitHub Actions上の最終CI。ローカルではWindowsとUbuntu WSLの両方で同等のテストを実施済み
+
+## macOS実機確認（2026-09-07）
+
+- 同一LAN上のMac mini（macOS `26.6.2`、Apple Silicon `arm64`）へSSH接続して確認
+- CoreAudioで内蔵スピーカーが既定出力および既定システム出力、2チャンネル、48 kHzとして認識されていることを確認
+- 公式SHA-256を照合したGo `1.26.8` ARM64版を一時ディレクトリへ展開し、管理者権限や恒久インストールなしで使用
+- macOS更新後のXcode不整合によりCGO有効時は `clang` 検出が失敗したが、このプロジェクトが対応する `CGO_ENABLED=0` では `go test ./...` が全パッケージで成功
+- `CGO_ENABLED=0` でmacOS ARM64バイナリのネイティブビルドに成功
+- macOS標準の `afplay` と、ビルドした `mcp-notify --play-once complete.wav --wait=true` が内蔵スピーカーを既定出力として終了コード0で完了
+- `--wait=false` の非同期再生起動が終了コード0、親プロセス実測0.38秒で完了
 
 ## VOICEVOX実機確認（2026-09-06）
 
